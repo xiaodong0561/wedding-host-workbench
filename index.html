@@ -296,3 +296,354 @@ function delCouple(id){
   });
 }
 </script>
+<script>
+/* ================= 档案详情 ================= */
+function viewDetail(){
+  const c = getCouple(view.coupleId);
+  if(!c) return `<div class="view"><div class="page-title">档案不存在</div><div class="page-sub"><button class="btn btn-ghost btn-sm" onclick="go('couples')">返回列表</button></div></div>`;
+  const d = daysUntil(c.date);
+  const chip = d === null ? '' : d >= 0
+    ? `<span class="cd-badge" style="position:static">距婚礼 ${d} 天</span>`
+    : `<span class="cd-badge past" style="position:static">已举行</span>`;
+  const tabs = [['comm','沟通记录'],['flow','婚礼流程'],['timeline','时间线安排']];
+  let body = '';
+  if(view.tab === 'comm') body = tabComm(c);
+  else if(view.tab === 'flow') body = tabFlow(c);
+  else body = tabTimeline(c);
+  return `
+  <div class="view">
+    <div class="detail-head">
+      <button class="back-btn" onclick="go('couples')" title="返回">←</button>
+      <div>
+        <div class="page-title" style="margin-bottom:0">${esc(coupleLabel(c))}</div>
+        <div class="page-sub" style="margin-bottom:0;margin-top:2px">${esc(fmtDate(c.date))}${c.venue?' · '+esc(c.venue):''}${c.phone?' · '+esc(c.phone):''}</div>
+      </div>
+      ${chip}
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn btn-ghost btn-sm" onclick="editCoupleForm('${c.id}')">编辑档案</button>
+        <button class="btn btn-danger btn-sm" onclick="delCouple('${c.id}')">删除</button>
+      </div>
+    </div>
+    ${c.notes ? `<div class="card" style="padding:14px 20px;margin-bottom:6px;font-size:13.5px;color:var(--ink-soft);border-left:3px solid var(--gold-light)">备注：${esc(c.notes)}</div>` : ''}
+    <div class="subtabs">
+      ${tabs.map(([k,n]) => `<button class="subtab ${view.tab===k?'active':''}" onclick="goTab('${k}')">${n}</button>`).join('')}
+    </div>
+    ${body}
+  </div>`;
+}
+
+/* ---------- 沟通记录 ---------- */
+function tabComm(c){
+  const list = [...(c.comms||[])].sort((a,b) => (String(b.date)+b.createdAt) < (String(a.date)+a.createdAt) ? -1 : 1);
+  return `
+    <div class="card form-card">
+      <div class="form-grid">
+        <div><label class="f">沟通日期 *</label><input class="fi" type="date" id="c-date" value="${new Date().toISOString().slice(0,10)}"></div>
+        <div><label class="f">沟通方式 *</label>
+          <select class="fi" id="c-method">
+            <option value="微信">微信</option><option value="电话">电话</option><option value="面谈">面谈</option>
+          </select>
+        </div>
+        <div class="full"><label class="f">沟通内容 *</label><textarea class="fi" id="c-content" placeholder="本次沟通要点、新人想法、需要确认的事项…"></textarea></div>
+        <div class="full"><label class="f">待办事项（多条用逗号或换行分隔，可留空）</label><textarea class="fi" id="c-todos" placeholder="例如：确认伴郎伴娘名单, 收集成长照片, 敲定开场音乐"></textarea></div>
+      </div>
+      <div class="form-actions"><button class="btn btn-gold btn-sm" onclick="addComm('${c.id}')">添加记录</button></div>
+    </div>
+    <div class="comm-list">
+      ${list.length ? list.map(cm => {
+        const mcls = cm.method === '电话' ? 'phone' : cm.method === '面谈' ? 'meet' : '';
+        return `
+        <div class="card comm-item">
+          <div class="comm-top">
+            <span class="method-tag ${mcls}">${esc(cm.method)}</span>
+            <span class="comm-date">${esc(fmtDate(cm.date))}</span>
+            <button class="icon-btn danger comm-del" title="删除记录" onclick="delComm('${c.id}','${cm.id}')">✕</button>
+          </div>
+          <div class="comm-content">${esc(cm.content)}</div>
+          ${(cm.todos||[]).length ? `<div class="comm-todos">${cm.todos.map(t => `
+            <div class="comm-todo ${t.done?'done':''}">
+              <div class="todo-check ${t.done?'on':''}" onclick="toggleTodo('${c.id}','${cm.id}','${t.id}')"></div>
+              <span>${esc(t.text)}</span>
+            </div>`).join('')}</div>` : ''}
+        </div>`;
+      }).join('') : `<div class="card empty"><span class="glyph">言</span>还没有沟通记录，第一次约谈后就记在这里吧</div>`}
+    </div>`;
+}
+function addComm(cid){
+  const c = getCouple(cid);
+  const date = document.getElementById('c-date').value;
+  const method = document.getElementById('c-method').value;
+  const content = document.getElementById('c-content').value.trim();
+  if(!date || !content){ toast('请填写沟通日期与内容'); return; }
+  const raw = document.getElementById('c-todos').value.trim();
+  const todos = raw ? raw.split(/[,，\n]/).map(s => s.trim()).filter(Boolean).map(t => ({ id: uid(), text: t, done: false })) : [];
+  c.comms = c.comms || [];
+  c.comms.push({ id: uid(), date, method, content, todos, createdAt: Date.now() });
+  save(); render(); toast('沟通记录已保存');
+}
+function delComm(cid, cmid){
+  confirmBox('删除记录', '确定删除这条沟通记录吗？其中的待办事项也会一并删除。', '删除', () => {
+    const c = getCouple(cid);
+    c.comms = c.comms.filter(x => x.id !== cmid);
+    save(); render(); toast('记录已删除');
+  });
+}
+function toggleTodo(cid, cmid, tid){
+  const c = getCouple(cid);
+  const cm = (c.comms||[]).find(x => x.id === cmid);
+  if(!cm) return;
+  const t = (cm.todos||[]).find(x => x.id === tid);
+  if(!t) return;
+  t.done = !t.done;
+  save();
+  const item = document.getElementById('todo-' + tid);
+  if(item){
+    item.querySelector('.todo-check').classList.toggle('on', t.done);
+    item.classList.toggle('finished', t.done);
+    if(t.done) setTimeout(render, 450); else render();
+  } else render();
+  if(t.done) toast('待办已完成');
+}
+
+/* ---------- 婚礼流程（晓东高定模板） ---------- */
+const FLOW_TEMPLATES = [
+  { name:'主持人开场', duration:'', section:'', notes:'主持人致开场词，拉开婚礼序幕。' },
+  { name:'出场方式', duration:'', section:'', notes:'① 新郎带手捧花，从 T 台末端走至主平台；② 新娘在门外等候，开门后走至副舞台，等待新郎迎接；③ 新郎迎接新娘，直接送花，不直视对方。' },
+  { name:'新人共同入场', duration:'', section:'', notes:'两人携手并肩，走上婚礼主舞台。' },
+  { name:'面向来宾鞠躬感谢', duration:'', section:'', notes:'新人转身面向宾客，鞠躬致意。' },
+  { name:'婚礼誓言', duration:'', section:'', notes:'主持人问是否愿意，新人回答「我愿意」；誓词新人提前备好，主持人宣读，请把名字写好。' },
+  { name:'交换戒指', duration:'', section:'', notes:'新郎外甥女送戒指，主持人提示后：新人同时右手取对方婚戒，按提示为对方佩戴，戴在左手无名指。' },
+  { name:'亲吻礼成', duration:'', section:'', notes:'手牵手亲吻一下，此环节新人可自由临时发挥。' },
+  { name:'父母登场', duration:'', section:'', notes:'父母登台，颁发最佳父母奖；新郎父亲致辞，礼成父母退场。' },
+  { name:'伴郎伴娘入场', duration:'', section:'', notes:'手捧花送同窗同寝好友；新郎新娘抛柿子、花生、玩偶，传递喜气。' },
+  { name:'全体大合影', duration:'', notes:'所有来宾合影，定格幸福瞬间。' },
+  { name:'新人退场 · 婚礼礼成', duration:'', section:'', notes:'两位新人带着心愿与祝福前行。' },
+  { name:'后场互动', duration:'', section:'', notes:'主持人唱歌、游戏互动；前半场互动礼品，请新人提前备足。' },
+];
+const TIMELINE_TEMPLATES = [
+  { time:'07:58', title:'新郎发车', note:'8:20 左右到达新娘家接亲' },
+  { time:'09:28', title:'新娘出阁', note:'10:00 左右新人到达新郎家拜堂' },
+  { time:'10:30', title:'拜堂结束', note:'10:30 左右拜堂结束，新人赶往酒店' },
+  { time:'11:58', title:'主仪式', note:'11:00 左右新人到达酒店，新娘换装，新郎迎宾' },
+];
+const DEFAULT_SCHED_NOTE = '＊路程参考：新郎去新娘家按 20 分钟计算，在新娘家停留约 50 分钟至一小时，回程按 30 分钟计算；拜堂仪式总时长约 30 分钟。以上时间仅供参考，最终时间以新人自家安排决定为准。';
+
+function tabFlow(c){
+  const flow = c.flow || [];
+  const groups = flowGroups(flow);
+  let num = 0;
+  return `
+    <div class="export-bar">
+      <span class="lbl">导出流程单</span>
+      <button class="btn btn-dark btn-sm" onclick="doExport('flow','image')">导出图片</button>
+      <button class="btn btn-dark btn-sm" onclick="doExport('flow','pdf')">导出 PDF</button>
+      <button class="btn btn-dark btn-sm" onclick="doExport('flow','word')">导出 Word</button>
+    </div>
+    <div class="flow-toolbar">
+      <button class="btn btn-gold btn-sm" onclick="addFlowItem('${c.id}')">＋ 添加环节</button>
+      <button class="btn btn-ghost btn-sm" onclick="applyFlowTemplate('${c.id}')">套用晓东高定模板</button>
+      ${flow.length ? `<button class="btn btn-ghost btn-sm" onclick="clearFlow('${c.id}')">清空流程</button>` : ''}
+    </div>
+    <div class="flow-list">
+      ${flow.length ? groups.map(g => `
+        ${g.section ? `<div class="flow-section-tag">${esc(g.section)}</div>` : ''}
+        ${g.items.map(f => { num++; return `
+        <div class="card flow-item">
+          <div class="flow-num">${String(num).padStart(2,'0')}</div>
+          <div class="flow-main">
+            <div class="flow-name">${esc(f.name)}</div>
+            <div class="flow-info">${f.duration?`<em>${esc(f.duration)}</em> · `:''}${esc(f.notes||'—')}</div>
+          </div>
+          <div class="flow-ops">
+            <button class="icon-btn" title="上移" ${num===1?'disabled style="opacity:.35"':''} onclick="moveFlow('${c.id}','${f.id}',-1)">↑</button>
+            <button class="icon-btn" title="下移" ${num===flow.length?'disabled style="opacity:.35"':''} onclick="moveFlow('${c.id}','${f.id}',1)">↓</button>
+            <button class="icon-btn" title="编辑" onclick="editFlowItem('${c.id}','${f.id}')">✎</button>
+            <button class="icon-btn danger" title="删除" onclick="delFlowItem('${c.id}','${f.id}')">✕</button>
+          </div>
+        </div>`; }).join('')}`).join('')
+      : `<div class="card empty"><span class="glyph">序</span>流程还是空白，可以「添加环节」逐步编排，或一键套用晓东高定经典模板后再调整</div>`}
+    </div>
+    ${flow.length ? `<div class="card flow-total">仪式流程合计约 <b>${esc(totalDuration(flow))}</b></div>` : ''}`;
+}
+function flowGroups(flow){
+  const groups = [];
+  flow.forEach(f => {
+    const s = (f.section || '').trim();
+    const last = groups[groups.length-1];
+    if(last && last.section === s) last.items.push(f);
+    else groups.push({ section: s, items: [f] });
+  });
+  return groups;
+}
+function totalDuration(flow){
+  let mins = 0;
+  flow.forEach(f => {
+    const m = String(f.duration||'').match(/(\d+(?:\.\d+)?)/);
+    if(m) mins += parseFloat(m[1]);
+  });
+  if(!mins) return '—';
+  if(mins < 60) return `${mins} 分钟`;
+  const h = Math.floor(mins/60), r = mins % 60;
+  return r ? `${h} 小时 ${r} 分钟` : `${h} 小时`;
+}
+function flowItemForm(cid, fid){
+  const c = getCouple(cid);
+  const f = fid ? (c.flow||[]).find(x => x.id === fid) : null;
+  window.__flowCoupleId = cid; window.__flowId = fid || null;
+  openModal(`
+    <h3>${f ? '编辑环节' : '添加环节'}</h3>
+    <div class="m-sub">环节会追加到流程末尾，可再上下移动调整顺序</div>
+    <div class="field"><label class="f">环节名称 *</label><input class="fi" id="fl-name" value="${esc(f?f.name:'')}" placeholder="如：新娘入场"></div>
+    <div class="field"><label class="f">时长</label><input class="fi" id="fl-duration" value="${esc(f?f.duration:'')}" placeholder="如：10 分钟（可留空）"></div>
+    <div class="field"><label class="f">篇章</label><input class="fi" id="fl-section" value="${esc(f?f.section:'')}" placeholder="如：壹 以爱之名 · 典礼篇（可留空）"></div>
+    <div class="field"><label class="f">环节说明</label><textarea class="fi" id="fl-notes" placeholder="走位、台词、道具等提示…">${esc(f?f.notes:'')}</textarea></div>
+    <div class="m-btns">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">取消</button>
+      <button class="btn btn-gold btn-sm" onclick="saveFlowItem()">保存</button>
+    </div>`);
+  setTimeout(() => document.getElementById('fl-name').focus(), 60);
+}
+function addFlowItem(cid){ flowItemForm(cid, null); }
+function editFlowItem(cid, fid){ flowItemForm(cid, fid); }
+function saveFlowItem(){
+  const name = document.getElementById('fl-name').value.trim();
+  if(!name){ toast('请填写环节名称'); return; }
+  const data = { name, duration: document.getElementById('fl-duration').value.trim(), section: document.getElementById('fl-section').value.trim(), notes: document.getElementById('fl-notes').value.trim() };
+  const c = getCouple(window.__flowCoupleId);
+  c.flow = c.flow || [];
+  if(window.__flowId){
+    Object.assign(c.flow.find(x => x.id === window.__flowId), data);
+    toast('环节已更新');
+  } else {
+    c.flow.push(Object.assign({ id: uid() }, data));
+    toast('环节已添加');
+  }
+  closeModal(); save(); render();
+}
+function delFlowItem(cid, fid){
+  confirmBox('删除环节', '确定删除这个流程环节吗？', '删除', () => {
+    const c = getCouple(cid);
+    c.flow = c.flow.filter(x => x.id !== fid);
+    save(); render(); toast('环节已删除');
+  });
+}
+function moveFlow(cid, fid, dir){
+  const c = getCouple(cid);
+  const idx = c.flow.findIndex(x => x.id === fid);
+  const j = idx + dir;
+  if(idx < 0 || j < 0 || j >= c.flow.length) return;
+  const t = c.flow[idx]; c.flow[idx] = c.flow[j]; c.flow[j] = t;
+  save(); render();
+}
+function applyFlowTemplate(cid){
+  const c = getCouple(cid);
+  const doApply = () => {
+    c.flow = FLOW_TEMPLATES.map(t => Object.assign({ id: uid() }, t));
+    save(); render(); toast('已套用晓东高定经典流程模板');
+  };
+  if((c.flow||[]).length){
+    confirmBox('套用模板', '当前已有自定义流程，套用模板将覆盖全部环节。确定继续吗？', '覆盖并套用', doApply);
+  } else doApply();
+}
+function clearFlow(cid){
+  confirmBox('清空流程', '确定清空全部流程环节吗？此操作无法撤销。', '清空', () => {
+    getCouple(cid).flow = [];
+    save(); render(); toast('流程已清空');
+  });
+}
+
+/* ---------- 时间线安排（时间参考表样式） ---------- */
+function tabTimeline(c){
+  const d = daysUntil(c.date);
+  const list = [...(c.timeline||[])].sort((a,b) => String(a.time) < String(b.time) ? -1 : 1);
+  const upcoming = d !== null && d >= 0;
+  return `
+    ${upcoming ? `<div class="card hero" style="padding:26px;margin-bottom:24px">
+      <div class="over">Wedding Day · Countdown</div>
+      <div class="countdown" id="cd-live" data-date="${esc(c.date)}"></div>
+    </div>` : ''}
+    <div class="export-bar">
+      <span class="lbl">导出时间参考表</span>
+      <button class="btn btn-dark btn-sm" onclick="doExport('time','image')">导出图片</button>
+      <button class="btn btn-dark btn-sm" onclick="doExport('time','pdf')">导出 PDF</button>
+      <button class="btn btn-dark btn-sm" onclick="doExport('time','word')">导出 Word</button>
+    </div>
+    <div class="card form-card">
+      <div class="form-grid">
+        <div><label class="f">时间 *</label><input class="fi" type="time" id="t-time"></div>
+        <div><label class="f">事项 *</label><input class="fi" id="t-title" placeholder="如：新郎发车 / 新娘出阁 / 主仪式"></div>
+        <div class="full"><label class="f">备注（竖线右侧说明）</label><input class="fi" id="t-note" placeholder="如：8:20 左右到达新娘家接亲"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-ghost btn-sm" onclick="applyTimeTemplate('${c.id}')">套用参考时间</button>
+        <button class="btn btn-gold btn-sm" onclick="addTimeline('${c.id}')">添加节点</button>
+      </div>
+    </div>
+    ${list.length ? `<div class="sched-list">
+      ${list.map(t => `
+        <div class="sched-row">
+          <div class="sched-left">
+            <div class="sched-time">${esc(t.time||'')}</div>
+            <div class="sched-title">${esc(t.title)}</div>
+          </div>
+          <div class="sched-mid"></div>
+          <div class="sched-note">${esc(t.note||'')}</div>
+          <div class="sched-ops">
+            <button class="icon-btn" title="编辑" onclick="editTimeline('${c.id}','${t.id}')">✎</button>
+            <button class="icon-btn danger" title="删除" onclick="delTimeline('${c.id}','${t.id}')">✕</button>
+          </div>
+        </div>`).join('')}
+    </div>` : `<div class="card empty"><span class="glyph">时</span>还没有时间节点，把发车、接亲、拜堂、仪式等关键节点记下来，或直接套用参考时间</div>`}`;
+}
+function addTimeline(cid){
+  const time = document.getElementById('t-time').value;
+  const title = document.getElementById('t-title').value.trim();
+  const note = document.getElementById('t-note').value.trim();
+  if(!time || !title){ toast('请填写时间与事项'); return; }
+  const c = getCouple(cid);
+  c.timeline = c.timeline || [];
+  c.timeline.push({ id: uid(), time, title, note });
+  save(); render(); toast('时间节点已添加');
+}
+function applyTimeTemplate(cid){
+  const c = getCouple(cid);
+  const doApply = () => {
+    c.timeline = TIMELINE_TEMPLATES.map(t => Object.assign({ id: uid() }, t));
+    save(); render(); toast('已套用参考时间');
+  };
+  if((c.timeline||[]).length){
+    confirmBox('套用参考时间', '当前已有时间节点，套用模板将覆盖全部节点。确定继续吗？', '覆盖并套用', doApply);
+  } else doApply();
+}
+function editTimeline(cid, tid){
+  const c = getCouple(cid);
+  const t = (c.timeline||[]).find(x => x.id === tid);
+  if(!t) return;
+  window.__tlCoupleId = cid; window.__tlId = tid;
+  openModal(`
+    <h3>编辑时间节点</h3>
+    <div class="m-sub">调整后按时间自动重新排序</div>
+    <div class="field"><label class="f">时间 *</label><input class="fi" type="time" id="et-time" value="${esc(t.time||'')}"></div>
+    <div class="field"><label class="f">事项 *</label><input class="fi" id="et-title" value="${esc(t.title)}"></div>
+    <div class="field"><label class="f">备注</label><input class="fi" id="et-note" value="${esc(t.note||'')}"></div>
+    <div class="m-btns">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">取消</button>
+      <button class="btn btn-gold btn-sm" onclick="saveTimelineEdit()">保存</button>
+    </div>`);
+}
+function saveTimelineEdit(){
+  const time = document.getElementById('et-time').value;
+  const title = document.getElementById('et-title').value.trim();
+  if(!time || !title){ toast('请填写时间与事项'); return; }
+  const t = getCouple(window.__tlCoupleId).timeline.find(x => x.id === window.__tlId);
+  t.time = time; t.title = title; t.note = document.getElementById('et-note').value.trim();
+  closeModal(); save(); render(); toast('时间节点已更新');
+}
+function delTimeline(cid, tid){
+  confirmBox('删除节点', '确定删除这个时间节点吗？', '删除', () => {
+    const c = getCouple(cid);
+    c.timeline = c.timeline.filter(x => x.id !== tid);
+    save(); render(); toast('节点已删除');
+  });
+}
+</script>
