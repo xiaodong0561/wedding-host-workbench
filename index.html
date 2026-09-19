@@ -647,3 +647,417 @@ function delTimeline(cid, tid){
   });
 }
 </script>
+<script>
+/* ================= 导出：画纸引擎（A4 @200dpi，黑白高级排版） ================= */
+const SHEET_W = 1654, SHEET_H = 2339;
+const SHEET_SERIF = '"Songti SC","Noto Serif SC","STSong","SimSun",serif';
+const SHEET_INK = '#1A1A1A', SHEET_SOFT = '#555', SHEET_FAINT = '#9A9084', SHEET_HAIR = '#B5ADA0';
+const CN_DIGITS = '〇一二三四五六七八九';
+const CN_UPPER = ['壹','贰','叁','肆','伍','陆','柒','捌','玖','拾','拾壹','拾贰','拾叁','拾肆','拾伍'];
+
+function setSp(ctx, px){ try{ ctx.letterSpacing = px + 'px'; }catch(e){} }
+function cnNum(n){
+  n = Math.floor(n);
+  if(n < 10) return CN_DIGITS[n];
+  if(n === 10) return '十';
+  if(n < 20) return '十' + (n%10 ? CN_DIGITS[n%10] : '');
+  return CN_DIGITS[Math.floor(n/10)] + '十' + (n%10 ? CN_DIGITS[n%10] : '');
+}
+function cnDate(s){
+  const m = String(s||'').match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
+  if(!m) return s || '';
+  return m[1].split('').map(d => CN_DIGITS[+d]).join('') + '年' + cnNum(+m[2]) + '月' + cnNum(+m[3]) + '日';
+}
+function wrapLines(ctx, text, maxW){
+  const lines = [];
+  String(text == null ? '' : text).split('\n').forEach(par => {
+    let line = '';
+    for(const ch of par){
+      if(line && ctx.measureText(line + ch).width > maxW){ lines.push(line); line = ch; }
+      else line += ch;
+    }
+    lines.push(line);
+  });
+  return lines;
+}
+const measurer = document.createElement('canvas').getContext('2d');
+function newSheetCtx(){
+  const cv = document.createElement('canvas');
+  cv.width = SHEET_W; cv.height = SHEET_H;
+  const ctx = cv.getContext('2d');
+  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0,0,SHEET_W,SHEET_H);
+  ctx.textBaseline = 'alphabetic';
+  return { cv, ctx };
+}
+function drawLogo(ctx, cx, cy){
+  ctx.save();
+  ctx.strokeStyle = SHEET_INK; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.arc(cx, cy, 62, 0, Math.PI*2); ctx.stroke();
+  ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.arc(cx, cy, 50, 0, Math.PI*2); ctx.stroke();
+  ctx.fillStyle = SHEET_INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  setSp(ctx, 2); ctx.font = '30px ' + SHEET_SERIF;
+  ctx.fillText('晓东', cx, cy - 20);
+  ctx.fillText('高定', cx, cy + 20);
+  ctx.restore();
+}
+function drawSheetHeader(ctx, o){
+  ctx.save();
+  ctx.strokeStyle = SHEET_INK;
+  ctx.lineWidth = 2.5; ctx.strokeRect(48, 48, SHEET_W-96, SHEET_H-96);
+  ctx.lineWidth = 1;   ctx.strokeRect(64, 64, SHEET_W-128, SHEET_H-128);
+  drawLogo(ctx, SHEET_W/2, 206);
+  ctx.textAlign = 'center'; ctx.fillStyle = SHEET_INK;
+  setSp(ctx, 14); ctx.font = '44px ' + SHEET_SERIF;
+  ctx.fillText('主持人晓东 · 高定婚礼', SHEET_W/2, 350);
+  setSp(ctx, 8); ctx.font = '26px ' + SHEET_SERIF; ctx.fillStyle = SHEET_SOFT;
+  ctx.fillText('XIAODONG HAUTE WEDDING', SHEET_W/2, 394);
+  setSp(ctx, 16); ctx.font = '32px ' + SHEET_SERIF; ctx.fillStyle = '#333';
+  ctx.fillText(o.en, SHEET_W/2, 476);
+  setSp(ctx, 26); ctx.font = '96px ' + SHEET_SERIF; ctx.fillStyle = SHEET_INK;
+  ctx.fillText(o.title, SHEET_W/2, 588);
+  // date line with side rules
+  const dt = (o.datePrefix ? o.datePrefix + ' ' : '') + cnDate(o.date);
+  setSp(ctx, 6); ctx.font = '40px ' + SHEET_SERIF; ctx.fillStyle = SHEET_INK;
+  const tw = ctx.measureText(dt).width;
+  ctx.fillText(dt, SHEET_W/2, 668);
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(SHEET_W/2 - tw/2 - 200, 658); ctx.lineTo(SHEET_W/2 - tw/2 - 50, 658); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(SHEET_W/2 + tw/2 + 50, 658); ctx.lineTo(SHEET_W/2 + tw/2 + 200, 658); ctx.stroke();
+  if(o.venue){
+    setSp(ctx, 4); ctx.font = '32px ' + SHEET_SERIF;
+    ctx.fillText(o.venue + ' · 敬备喜筵', SHEET_W/2, 726);
+  }
+  // line - diamond - line divider
+  const dy = o.venue ? 778 : 726;
+  ctx.beginPath(); ctx.moveTo(SHEET_W/2 - 250, dy); ctx.lineTo(SHEET_W/2 - 26, dy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(SHEET_W/2 + 26, dy); ctx.lineTo(SHEET_W/2 + 250, dy); ctx.stroke();
+  ctx.save(); ctx.translate(SHEET_W/2, dy); ctx.rotate(Math.PI/4);
+  ctx.fillStyle = SHEET_INK; ctx.fillRect(-7, -7, 14, 14); ctx.restore();
+  ctx.restore();
+  return dy + 66;
+}
+function drawSheetFooter(ctx, text){
+  ctx.save();
+  ctx.textAlign = 'center'; ctx.fillStyle = SHEET_INK;
+  setSp(ctx, 10); ctx.font = '30px ' + SHEET_SERIF;
+  ctx.fillText(text, SHEET_W/2, SHEET_H - 128);
+  ctx.restore();
+}
+const CONTENT_X = 110, CONTENT_W = SHEET_W - 220, CONTENT_BOTTOM = SHEET_H - 330;
+
+/* ---------- 流程单画布 ---------- */
+function flowBlocksOf(c){
+  const blocks = [];
+  flowGroups(c.flow || []).forEach(g => {
+    if(g.section) blocks.push({ type:'section', text:g.section });
+    g.items.forEach(f => blocks.push({ type:'item', f }));
+  });
+  return blocks;
+}
+function measureFlowBlock(b, colW){
+  if(b.type === 'section'){
+    return Object.assign(b, { _h: 84 });
+  }
+  measurer.font = '36px ' + SHEET_SERIF;
+  const nameLines = wrapLines(measurer, b.f.name, colW - 64).slice(0, 2);
+  measurer.font = '26px ' + SHEET_SERIF;
+  const descLines = b.f.notes ? wrapLines(measurer, b.f.notes, colW - 64).slice(0, 8) : [];
+  const h = nameLines.length * 46 + (descLines.length ? descLines.length * 40 + 14 : 0) + 32;
+  return Object.assign(b, { _m:{ nameLines, descLines }, _h:h });
+}
+function paginateFlow(blocks, contentTop){
+  const colGap = 80, colW = (CONTENT_W - colGap) / 2;
+  blocks.forEach(b => measureFlowBlock(b, colW));
+  const pages = [];
+  let page = newFlowPage(), col = 0, y = contentTop;
+  function newFlowPage(){ return { L:[], R:[], usedY: contentTop }; }
+  function advance(){
+    if(col === 0){ col = 1; y = contentTop; }
+    else { pages.push(page); page = newFlowPage(); col = 0; y = contentTop; }
+  }
+  blocks.forEach(b => {
+    if(b.type === 'section' && y > contentTop + 10) advance();
+    if(y + b._h > CONTENT_BOTTOM) advance();
+    (col === 0 ? page.L : page.R).push({ b, y });
+    y += b._h;
+    page.usedY = Math.max(page.usedY, y);
+  });
+  pages.push(page);
+  return { pages, colW };
+}
+function drawFlowBlock(ctx, entry, x, colW, num){
+  const b = entry.b, y = entry.y;
+  ctx.save();
+  ctx.textAlign = 'left';
+  if(b.type === 'section'){
+    ctx.textAlign = 'center'; ctx.fillStyle = SHEET_INK;
+    setSp(ctx, 8); ctx.font = '42px ' + SHEET_SERIF;
+    ctx.fillText(b.text, SHEET_W/2, y + 46);
+    ctx.restore();
+    return num;
+  }
+  ctx.fillStyle = SHEET_INK; ctx.font = '34px ' + SHEET_SERIF;
+  ctx.fillText(String(num).padStart(2,'0'), x, y + 32);
+  ctx.font = '36px ' + SHEET_SERIF;
+  b._m.nameLines.forEach((l, i) => ctx.fillText(l, x + 66, y + 34 + i * 46));
+  const dy = y + 34 + b._m.nameLines.length * 46 + 4;
+  if(b._m.descLines.length){
+    ctx.fillStyle = '#444'; ctx.font = '25px ' + SHEET_SERIF;
+    b._m.descLines.forEach((l, i) => ctx.fillText(l, x + 66, dy + 26 + i * 40));
+  }
+  ctx.restore();
+  return num + 1;
+}
+function buildFlowCanvases(c){
+  const contentTop = drawSheetHeader(newSheetCtx().ctx, { en:'Wedding Ceremony', title:'婚礼详细流程', date:c.date, datePrefix:'婚期', venue:c.venue });
+  const blocks = flowBlocksOf(c);
+  const tips = (c.tips || '').split('\n').map(s => s.trim()).filter(Boolean);
+  // measure tips height
+  let tipsH = 0, tipsLines = [];
+  if(tips.length){
+    measurer.font = '27px ' + SHEET_SERIF;
+    tips.forEach(t => tipsLines.push(wrapLines(measurer, t, CONTENT_W - 150).slice(0, 4)));
+    tipsH = 118 + tipsLines.reduce((s, l) => s + l.length * 42 + 16, 0);
+  }
+  const { pages, colW } = paginateFlow(blocks, contentTop);
+  if(tips.length){
+    while(pages[pages.length-1].usedY + tipsH + 70 > CONTENT_BOTTOM) pages.push({ L:[], R:[], usedY: contentTop });
+  }
+  const colX = [CONTENT_X, CONTENT_X + colW + 80];
+  return pages.map((p, pi) => {
+    const { cv, ctx } = newSheetCtx();
+    drawSheetHeader(ctx, { en:'Wedding Ceremony', title:'婚礼详细流程', date:c.date, datePrefix:'婚期', venue:c.venue });
+    let num = 1 + p.L.filter(e => e.b.type === 'item').length * 0; // numbering continues across pages
+    // first pass: count items on previous pages
+    num = pages.slice(0, pi).reduce((s, pg) => s + pg.L.concat(pg.R).filter(e => e.b.type === 'item').length, 0) + 1;
+    p.L.forEach(e => { num = drawFlowBlock(ctx, e, colX[0], colW, num); });
+    p.R.forEach(e => { num = drawFlowBlock(ctx, e, colX[1], colW, num); });
+    if(pi === pages.length - 1 && tips.length){
+      let ty = Math.max(p.usedY + 56, CONTENT_BOTTOM - tipsH + 60);
+      ctx.save();
+      ctx.strokeStyle = SHEET_HAIR; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(CONTENT_X, ty - 26); ctx.lineTo(CONTENT_X + CONTENT_W, ty - 26); ctx.stroke();
+      ctx.textAlign = 'center'; ctx.fillStyle = SHEET_INK;
+      setSp(ctx, 10); ctx.font = '38px ' + SHEET_SERIF;
+      ctx.fillText('温 馨 贴 士', SHEET_W/2, ty + 18);
+      ctx.textAlign = 'left'; ctx.font = '27px ' + SHEET_SERIF; ctx.fillStyle = '#333';
+      let ly = ty + 66;
+      tips.forEach((t, i) => {
+        const lines = tipsLines[i];
+        ctx.fillStyle = SHEET_INK; ctx.font = '28px ' + SHEET_SERIF;
+        ctx.fillText((CN_UPPER[i] || (i+1)) + '、', CONTENT_X + 14, ly + 4);
+        ctx.fillStyle = '#333'; ctx.font = '27px ' + SHEET_SERIF;
+        lines.forEach((l, j) => ctx.fillText(l, CONTENT_X + 88, ly + j * 42));
+        ly += lines.length * 42 + 16;
+      });
+      ctx.restore();
+    }
+    drawSheetFooter(ctx, '祝福新郎新娘 · 新婚快乐 · 百年好合 · 早生贵子');
+    return cv;
+  });
+}
+
+/* ---------- 时间参考表画布 ---------- */
+function measureTimeRow(t){
+  measurer.font = '36px ' + SHEET_SERIF;
+  const titleLines = wrapLines(measurer, t.title, 440).slice(0, 2);
+  measurer.font = '27px ' + SHEET_SERIF;
+  const noteLines = wrapLines(measurer, t.note || '', 650).slice(0, 5);
+  const h = Math.max(100, titleLines.length * 46 + 26, noteLines.length * 42 + 26) + 26;
+  return Object.assign(t, { _m:{ titleLines, noteLines }, _h:h });
+}
+function drawTimeRow(ctx, t, y){
+  ctx.save();
+  ctx.textAlign = 'left';
+  ctx.fillStyle = SHEET_INK; ctx.font = '68px ' + SHEET_SERIF;
+  ctx.fillText(t.time || '', CONTENT_X, y + 74);
+  ctx.font = '36px ' + SHEET_SERIF;
+  t._m.titleLines.forEach((l, i) => ctx.fillText(l, 330, y + 60 + i * 46));
+  ctx.strokeStyle = SHEET_FAINT; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(830, y + 14); ctx.lineTo(830, y + t._h - 22); ctx.stroke();
+  ctx.fillStyle = '#333'; ctx.font = '27px ' + SHEET_SERIF;
+  t._m.noteLines.forEach((l, i) => ctx.fillText(l, 895, y + 54 + i * 42));
+  ctx.strokeStyle = SHEET_HAIR; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(CONTENT_X, y + t._h - 6); ctx.lineTo(CONTENT_X + CONTENT_W, y + t._h - 6); ctx.stroke();
+  ctx.restore();
+}
+function buildTimeCanvases(c){
+  const rows = [...(c.timeline || [])].sort((a,b) => String(a.time) < String(b.time) ? -1 : 1);
+  rows.forEach(r => measureTimeRow(r));
+  const footnote = c.scheduleNote || DEFAULT_SCHED_NOTE;
+  measurer.font = '25px ' + SHEET_SERIF;
+  const footLines = wrapLines(measurer, footnote, CONTENT_W).slice(0, 6);
+  const pages = [];
+  let y = 0;
+  const CT = 830, CB = CONTENT_BOTTOM - 240;
+  let pageRows = [];
+  rows.forEach(r => {
+    if(y + r._h > CB){ pages.push(pageRows); pageRows = []; y = 0; }
+    pageRows.push({ r, y });
+    y += r._h;
+  });
+  pages.push(pageRows);
+  // footnote overflow guard
+  const footY = SHEET_H - 560;
+  if(pages.length && pages[pages.length-1].length && pages[pages.length-1][pages[pages.length-1].length-1].y + pages[pages.length-1][pages[pages.length-1].length-1].r._h + 70 > footY){
+    pages.push([]);
+  }
+  return pages.map(prs => {
+    const { cv, ctx } = newSheetCtx();
+    drawSheetHeader(ctx, { en:'Wedding Day Schedule', title:'时间参考表', date:c.date });
+    prs.forEach(e => drawTimeRow(ctx, e.r, e.y + CT));
+    const lastY = prs.length ? prs[prs.length-1].y + prs[prs.length-1].r._h : 0;
+    let fy = Math.max(footY, CT + lastY + 70);
+    if(fy + footLines.length * 38 > SHEET_H - 220) fy = footY;
+    ctx.save();
+    ctx.strokeStyle = SHEET_HAIR; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(CONTENT_X, fy - 16); ctx.lineTo(CONTENT_X + CONTENT_W, fy - 16); ctx.stroke();
+    ctx.fillStyle = SHEET_SOFT; ctx.font = '25px ' + SHEET_SERIF; ctx.textAlign = 'left';
+    footLines.forEach((l, i) => ctx.fillText(l, CONTENT_X, fy + 22 + i * 38));
+    ctx.restore();
+    drawSheetFooter(ctx, '良辰吉日 · 万事顺遂');
+    return cv;
+  });
+}
+
+/* ---------- 组装 PDF（图片全页嵌入，零依赖） ---------- */
+function dataUrlToBytes(u){
+  const bin = atob(u.slice(u.indexOf(',') + 1));
+  const arr = new Uint8Array(bin.length);
+  for(let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return arr;
+}
+function assemblePdf(jpegs){
+  const enc = new TextEncoder();
+  const chunks = [], offsets = [0];
+  let pos = 0;
+  const push = u8 => { chunks.push(u8); pos += u8.length; };
+  const pushStr = s => push(enc.encode(s));
+  pushStr('%PDF-1.4\n');
+  push(new Uint8Array([0x25, 0xE2, 0xE3, 0xCF, 0xD3, 0x0A]));
+  const W = 595.28, H = 841.89, n = jpegs.length, total = 2 + n * 3;
+  offsets[1] = pos; pushStr('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
+  offsets[2] = pos;
+  pushStr('2 0 obj\n<< /Type /Pages /Kids [' + jpegs.map((_, i) => `${3 + i*3} 0 R`).join(' ') + `] /Count ${n} >>\nendobj\n`);
+  jpegs.forEach((jpg, i) => {
+    const p = 3 + i*3, im = 4 + i*3, ct = 5 + i*3;
+    offsets[p] = pos;
+    pushStr(`${p} 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /XObject << /Im${i} ${im} 0 R >> /ProcSet [/PDF /ImageC] >> /Contents ${ct} 0 R >>\nendobj\n`);
+    offsets[im] = pos;
+    pushStr(`${im} 0 obj\n<< /Type /XObject /Subtype /Image /Width ${jpg.width} /Height ${jpg.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpg.data.length} >>\nstream\n`);
+    push(jpg.data);
+    pushStr('\nendstream\nendobj\n');
+    const stream = `q ${W} 0 0 ${H} 0 0 cm /Im${i} Do Q`;
+    offsets[ct] = pos;
+    pushStr(`${ct} 0 obj\n<< /Length ${stream.length} >>\nstream\n${stream}\nendstream\nendobj\n`);
+  });
+  const xrefPos = pos;
+  let x = `xref\n0 ${total + 1}\n0000000000 65535 f \n`;
+  for(let i = 1; i <= total; i++) x += String(offsets[i]).padStart(10, '0') + ' 00000 n \n';
+  pushStr(x);
+  pushStr(`trailer\n<< /Size ${total + 1} /Root 1 0 R >>\nstartxref\n${xrefPos}\n%%EOF`);
+  const len = chunks.reduce((s, c) => s + c.length, 0);
+  const out = new Uint8Array(len);
+  let o = 0;
+  chunks.forEach(c => { out.set(c, o); o += c.length; });
+  return out;
+}
+
+/* ---------- Word 文档（.doc） ---------- */
+function wordShell(title, body){
+  return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${esc(title)}</title><style>
+body{font-family:SimSun,'宋体',serif;color:#1A1A1A;padding:36px;line-height:1.8}
+.c{text-align:center}.small{font-size:12px;letter-spacing:4px;color:#555}
+h1{text-align:center;font-size:28px;letter-spacing:16px;font-weight:normal;margin:22px 0 8px}
+.rule{border:none;border-top:1px solid #999;margin:12px 0}
+table{border-collapse:collapse;width:100%;margin-top:12px}
+td{border:1px solid #999;padding:8px 12px;font-size:13px;vertical-align:top}
+.sec{background:#F5F1E8;text-align:center;letter-spacing:6px;font-size:15px;font-weight:bold}
+.foot{text-align:center;letter-spacing:8px;margin-top:28px;font-size:14px}
+.tips{margin-top:22px;font-size:13px}.tips p{margin:6px 0}
+</style></head><body>${body}</body></html>`;
+}
+function buildFlowWord(c){
+  let num = 0;
+  const rows = flowGroups(c.flow || []).map(g =>
+    (g.section ? `<tr><td colspan="3" class="sec">${esc(g.section)}</td></tr>` : '') +
+    g.items.map(f => {
+      num++;
+      return `<tr><td style="width:44px">${String(num).padStart(2,'0')}</td><td style="width:170px">${esc(f.name)}${f.duration ? `<br><span style="color:#777;font-size:11px">${esc(f.duration)}</span>` : ''}</td><td>${esc(f.notes || '')}</td></tr>`;
+    }).join('')
+  ).join('');
+  const tips = (c.tips || '').split('\n').map(s => s.trim()).filter(Boolean)
+    .map((t, i) => `<p>${CN_UPPER[i] || (i + 1)}、${esc(t)}</p>`).join('');
+  return wordShell('婚礼详细流程', `
+<p class="c" style="letter-spacing:8px;font-size:18px">主持人晓东 · 高定婚礼</p>
+<p class="c small">XIAODONG HAUTE WEDDING</p>
+<p class="c small">Wedding Ceremony</p>
+<h1>婚礼详细流程</h1>
+<p class="c" style="letter-spacing:4px">—— 婚期 ${cnDate(c.date)} ——</p>
+<p class="c" style="letter-spacing:4px">${esc(c.venue || '典礼酒店')} · 敬备喜筵</p>
+<hr class="rule">
+<table>${rows || '<tr><td>（流程为空）</td></tr>'}</table>
+${tips ? `<div class="tips"><p class="c" style="letter-spacing:10px;font-size:15px">温 馨 贴 士</p>${tips}</div>` : ''}
+<p class="foot">祝福新郎新娘 · 新婚快乐 · 百年好合 · 早生贵子</p>`);
+}
+function buildTimeWord(c){
+  const rows = [...(c.timeline || [])].sort((a,b) => String(a.time) < String(b.time) ? -1 : 1)
+    .map(t => `<tr><td style="width:110px;font-size:18px">${esc(t.time || '')}</td><td style="width:170px">${esc(t.title)}</td><td>${esc(t.note || '')}</td></tr>`).join('');
+  return wordShell('时间参考表', `
+<p class="c" style="letter-spacing:8px;font-size:18px">主持人晓东 · 高定婚礼</p>
+<p class="c small">XIAODONG HAUTE WEDDING</p>
+<p class="c small">Wedding Day Schedule</p>
+<h1>时间参考表</h1>
+<p class="c" style="letter-spacing:4px">—— ${cnDate(c.date)} ——</p>
+<hr class="rule">
+<table>${rows || '<tr><td>（时间线为空）</td></tr>'}</table>
+<p style="font-size:12px;color:#555">${esc(c.scheduleNote || DEFAULT_SCHED_NOTE)}</p>
+<p class="foot">良辰吉日 · 万事顺遂</p>`);
+}
+
+/* ---------- 下载与导出入口 ---------- */
+function downloadBlob(blob, filename){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+}
+function doExport(kind, fmt){
+  const c = getCouple(view.coupleId);
+  if(!c) return;
+  if(kind === 'flow' && !(c.flow || []).length){ toast('请先添加或套用婚礼流程'); return; }
+  if(kind === 'time' && !(c.timeline || []).length){ toast('请先添加或套用时间节点'); return; }
+  const fname = `晓东高定-${kind === 'flow' ? '婚礼详细流程' : '时间参考表'}-${c.groom || '新郎'}${c.bride || '新娘'}`;
+  if(fmt === 'word'){
+    const html = kind === 'flow' ? buildFlowWord(c) : buildTimeWord(c);
+    downloadBlob(new Blob(['﻿' + html], { type:'application/msword' }), fname + '.doc');
+    toast('Word 文档已导出');
+    return;
+  }
+  const canvases = kind === 'flow' ? buildFlowCanvases(c) : buildTimeCanvases(c);
+  if(fmt === 'image'){
+    const gap = 28;
+    const H = canvases.reduce((s, cv) => s + cv.height, 0) + gap * (canvases.length - 1);
+    const out = document.createElement('canvas');
+    out.width = SHEET_W; out.height = H;
+    const ctx = out.getContext('2d');
+    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, SHEET_W, H);
+    let y = 0;
+    canvases.forEach(cv => { ctx.drawImage(cv, 0, y); y += cv.height + gap; });
+    out.toBlob(b => { downloadBlob(b, fname + '.png'); toast('图片已导出'); }, 'image/png');
+  } else {
+    const jpgs = canvases.map(cv => ({ data: dataUrlToBytes(cv.toDataURL('image/jpeg', 0.92)), width: cv.width, height: cv.height }));
+    downloadBlob(new Blob([assemblePdf(jpgs)], { type:'application/pdf' }), fname + '.pdf');
+    toast('PDF 已导出');
+  }
+}
+
+/* ================= 启动 ================= */
+document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
+render();
+</script>
+</body>
+</html>
