@@ -1,3 +1,352 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>晓东高定 · 婚礼主持人工作台</title>
+<style>
+  :root{
+    --ivory:#FAF6F0;
+    --ivory-2:#F3EDE3;
+    --white:#FFFFFF;
+    --ink:#2B2724;
+    --ink-soft:#6F665B;
+    --ink-faint:#9A9084;
+    --gold:#B08A4F;
+    --gold-deep:#96733D;
+    --gold-light:#DCC49A;
+    --gold-pale:#F0E6D2;
+    --line:#E7DDCB;
+    --danger:#A8554B;
+    --shadow:0 10px 30px rgba(43,39,36,.08);
+    --shadow-sm:0 4px 14px rgba(43,39,36,.06);
+    --radius:14px;
+    --serif: Georgia,"Times New Roman","Noto Serif SC","Songti SC","STSong","SimSun",serif;
+    --sans: -apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:var(--sans);
+    background:var(--ivory);
+    color:var(--ink);
+    min-height:100vh;
+    line-height:1.6;
+  }
+  body::before{
+    content:"";
+    position:fixed;inset:0;
+    background:
+      radial-gradient(1000px 500px at 85% -10%, rgba(220,196,154,.28), transparent 60%),
+      radial-gradient(800px 500px at -10% 110%, rgba(220,196,154,.22), transparent 60%);
+    pointer-events:none;z-index:0;
+  }
+  .app{position:relative;z-index:1}
+
+  /* ---------- Header ---------- */
+  header.topbar{
+    position:sticky;top:0;z-index:50;
+    background:rgba(250,246,240,.88);
+    backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);
+  }
+  .topbar-inner{
+    max-width:1120px;margin:0 auto;padding:0 20px;
+    height:70px;display:flex;align-items:center;gap:18px;
+  }
+  .brand{display:flex;align-items:center;gap:14px;cursor:pointer;flex-shrink:0}
+  .brand-logo2{
+    width:46px;height:46px;border:1.5px solid var(--ink);border-radius:50%;
+    display:flex;align-items:center;justify-content:center;position:relative;flex-shrink:0;
+    background:#fff;
+  }
+  .brand-logo2::after{content:"";position:absolute;inset:4px;border:1px solid var(--ink);border-radius:50%}
+  .brand-logo2 span{font-family:var(--serif);font-size:11px;line-height:1.3;text-align:center;letter-spacing:1px;color:var(--ink);position:relative}
+  .brand-text .t1{font-family:var(--serif);font-size:17px;letter-spacing:3px;color:var(--ink);white-space:nowrap}
+  .brand-text .t2{font-size:9px;letter-spacing:3px;color:var(--ink-faint);text-transform:uppercase;white-space:nowrap}
+  nav.tabs{display:flex;gap:6px;margin-left:auto}
+  .tab{
+    border:1px solid transparent;background:transparent;color:var(--ink-soft);
+    font-family:var(--sans);font-size:14px;padding:8px 16px;border-radius:999px;
+    cursor:pointer;transition:all .25s ease;letter-spacing:1px;white-space:nowrap;
+  }
+  .tab:hover{color:var(--gold-deep);background:rgba(176,138,79,.08)}
+  .tab.active{
+    color:#fff;background:linear-gradient(135deg,var(--gold),var(--gold-deep));
+    box-shadow:0 4px 12px rgba(150,115,61,.35);
+  }
+
+  main{max-width:1120px;margin:0 auto;padding:32px 20px 90px}
+
+  /* ---------- Views ---------- */
+  .view{animation:viewIn .45s cubic-bezier(.22,.9,.32,1)}
+  @keyframes viewIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+  .page-title{font-family:var(--serif);font-size:30px;letter-spacing:2px;margin-bottom:6px}
+  .page-sub{color:var(--ink-soft);font-size:14px;margin-bottom:28px}
+
+  /* ---------- Cards ---------- */
+  .card{
+    background:var(--white);border:1px solid var(--line);
+    border-radius:var(--radius);box-shadow:var(--shadow-sm);
+    transition:transform .3s ease, box-shadow .3s ease;
+  }
+  .card:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+
+  .grid-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:18px;margin-bottom:28px}
+  .stat{padding:26px 24px;position:relative;overflow:hidden}
+  .stat::after{
+    content:"";position:absolute;right:-24px;top:-24px;width:96px;height:96px;
+    border-radius:50%;background:radial-gradient(circle, rgba(220,196,154,.35), transparent 70%);
+  }
+  .stat .label{font-size:12px;letter-spacing:3px;color:var(--ink-faint);text-transform:uppercase;margin-bottom:10px}
+  .stat .value{font-family:var(--serif);font-size:44px;color:var(--gold-deep);line-height:1.1}
+  .stat .value small{font-size:16px;color:var(--ink-soft);margin-left:6px;font-family:var(--sans)}
+  .stat .hint{font-size:12px;color:var(--ink-faint);margin-top:8px}
+
+  /* Countdown hero */
+  .hero{
+    padding:44px 40px;margin-bottom:28px;text-align:center;position:relative;overflow:hidden;
+    background:linear-gradient(150deg,#fff 30%, var(--gold-pale));
+  }
+  .hero .over{font-size:12px;letter-spacing:5px;color:var(--gold-deep);text-transform:uppercase;margin-bottom:8px}
+  .hero .names{font-family:var(--serif);font-size:32px;letter-spacing:3px;margin-bottom:4px}
+  .hero .meta{color:var(--ink-soft);font-size:14px;margin-bottom:26px}
+  .countdown{display:flex;justify-content:center;gap:14px;flex-wrap:wrap}
+  .cd-box{
+    min-width:86px;padding:16px 10px 12px;border-radius:12px;
+    background:rgba(255,255,255,.75);border:1px solid var(--line);
+  }
+  .cd-box .n{font-family:var(--serif);font-size:38px;color:var(--ink);line-height:1;font-variant-numeric:tabular-nums}
+  .cd-box .u{font-size:11px;letter-spacing:2px;color:var(--ink-faint);margin-top:6px}
+  .hero.done .cd-box .n{color:var(--gold-deep);font-size:26px}
+
+  .section-head{display:flex;align-items:center;justify-content:space-between;margin:34px 0 16px}
+  .section-head h3{font-family:var(--serif);font-size:20px;letter-spacing:2px}
+  .section-head .count-pill{
+    font-size:12px;color:var(--gold-deep);background:var(--gold-pale);
+    border-radius:999px;padding:2px 12px;margin-left:8px;letter-spacing:1px;
+  }
+
+  /* Todo list */
+  .todo-list{display:flex;flex-direction:column}
+  .todo-item{
+    display:flex;align-items:flex-start;gap:12px;padding:16px 20px;
+    border-bottom:1px solid var(--line);transition:background .2s ease;
+    animation:viewIn .35s ease;
+  }
+  .todo-item:last-child{border-bottom:none}
+  .todo-item:hover{background:rgba(240,230,210,.35)}
+  .todo-check{
+    width:20px;height:20px;border-radius:6px;border:1.5px solid var(--gold);
+    flex-shrink:0;margin-top:3px;cursor:pointer;position:relative;
+    transition:all .2s ease;background:#fff;
+  }
+  .todo-check.on{background:linear-gradient(135deg,var(--gold),var(--gold-deep));border-color:var(--gold-deep)}
+  .todo-check.on::after{
+    content:"";position:absolute;left:6px;top:2px;width:5px;height:10px;
+    border:solid #fff;border-width:0 2px 2px 0;transform:rotate(45deg);
+  }
+  .todo-body{flex:1;min-width:0}
+  .todo-text{font-size:15px;transition:all .25s ease}
+  .todo-item.finished .todo-text{color:var(--ink-faint);text-decoration:line-through}
+  .todo-from{font-size:12px;color:var(--ink-faint);margin-top:2px}
+  .todo-from a{color:var(--gold-deep);cursor:pointer;text-decoration:none;border-bottom:1px dotted var(--gold-light)}
+  .empty{padding:44px 20px;text-align:center;color:var(--ink-faint);font-size:14px}
+  .empty .glyph{font-family:var(--serif);font-size:34px;color:var(--gold-light);display:block;margin-bottom:8px}
+
+  /* ---------- Buttons ---------- */
+  .btn{
+    display:inline-flex;align-items:center;gap:6px;
+    border:none;cursor:pointer;font-family:var(--sans);font-size:14px;
+    padding:10px 20px;border-radius:999px;letter-spacing:1px;
+    transition:all .25s ease;
+  }
+  .btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-deep));color:#fff;box-shadow:0 4px 14px rgba(150,115,61,.3)}
+  .btn-gold:hover{box-shadow:0 6px 20px rgba(150,115,61,.45);transform:translateY(-1px)}
+  .btn-ghost{background:#fff;border:1px solid var(--line);color:var(--ink-soft)}
+  .btn-ghost:hover{border-color:var(--gold-light);color:var(--gold-deep)}
+  .btn-dark{background:var(--ink);color:#F5EFE4}
+  .btn-dark:hover{background:#443E38}
+  .btn-danger{background:#fff;border:1px solid #E5C6C1;color:var(--danger)}
+  .btn-danger:hover{background:#FBEFED}
+  .btn-sm{padding:6px 14px;font-size:13px}
+  .icon-btn{
+    width:32px;height:32px;border-radius:8px;border:1px solid var(--line);
+    background:#fff;color:var(--ink-soft);cursor:pointer;font-size:13px;
+    display:inline-flex;align-items:center;justify-content:center;
+    transition:all .2s ease;
+  }
+  .icon-btn:hover{border-color:var(--gold-light);color:var(--gold-deep);background:var(--gold-pale)}
+  .icon-btn.danger:hover{border-color:#E5C6C1;color:var(--danger);background:#FBEFED}
+
+  /* ---------- Couple cards ---------- */
+  .couple-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:20px}
+  .couple-card{padding:26px 24px;cursor:pointer;position:relative}
+  .monogram{
+    width:56px;height:56px;border-radius:50%;margin-bottom:16px;
+    border:1px solid var(--gold-light);
+    background:linear-gradient(135deg,#fff,var(--gold-pale));
+    display:flex;align-items:center;justify-content:center;
+    font-family:var(--serif);font-size:18px;color:var(--gold-deep);letter-spacing:1px;
+  }
+  .couple-names{font-family:var(--serif);font-size:20px;letter-spacing:1px;margin-bottom:6px}
+  .couple-meta{font-size:13px;color:var(--ink-soft);display:flex;flex-direction:column;gap:4px}
+  .couple-meta span{display:inline-flex;align-items:center;gap:6px}
+  .cd-badge{
+    position:absolute;top:22px;right:22px;
+    font-size:12px;color:var(--gold-deep);background:var(--gold-pale);
+    padding:4px 12px;border-radius:999px;letter-spacing:1px;
+  }
+  .cd-badge.past{background:var(--ivory-2);color:var(--ink-faint)}
+  .card-actions{display:flex;gap:8px;margin-top:16px;padding-top:14px;border-top:1px dashed var(--line)}
+
+  /* ---------- Detail ---------- */
+  .detail-head{display:flex;align-items:center;gap:16px;margin-bottom:8px;flex-wrap:wrap}
+  .back-btn{
+    width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:#fff;
+    color:var(--ink-soft);cursor:pointer;font-size:16px;transition:all .2s ease;flex-shrink:0;
+  }
+  .back-btn:hover{border-color:var(--gold-light);color:var(--gold-deep);transform:translateX(-2px)}
+  .subtabs{display:flex;gap:6px;margin:20px 0 24px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .subtab{
+    background:none;border:none;border-bottom:2px solid transparent;
+    padding:10px 18px;font-size:14px;color:var(--ink-soft);cursor:pointer;
+    font-family:var(--sans);letter-spacing:1px;transition:all .25s ease;margin-bottom:-1px;
+  }
+  .subtab:hover{color:var(--gold-deep)}
+  .subtab.active{color:var(--gold-deep);border-bottom-color:var(--gold);font-weight:600}
+
+  /* Forms */
+  .form-card{padding:22px;margin-bottom:22px;background:linear-gradient(160deg,#fff 60%, var(--ivory))}
+  .form-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px}
+  .form-grid .full{grid-column:1/-1}
+  label.f{display:block;font-size:12px;letter-spacing:2px;color:var(--ink-faint);margin-bottom:6px;text-transform:uppercase}
+  input.fi, select.fi, textarea.fi{
+    width:100%;border:1px solid var(--line);border-radius:10px;
+    padding:10px 14px;font-size:14px;font-family:var(--sans);color:var(--ink);
+    background:#fff;transition:border-color .2s ease, box-shadow .2s ease;outline:none;
+  }
+  input.fi:focus, select.fi:focus, textarea.fi:focus{
+    border-color:var(--gold);box-shadow:0 0 0 3px rgba(176,138,79,.14);
+  }
+  textarea.fi{resize:vertical;min-height:64px}
+  .form-actions{display:flex;gap:10px;margin-top:16px;justify-content:flex-end;flex-wrap:wrap}
+
+  /* Comm records */
+  .comm-list{display:flex;flex-direction:column;gap:16px}
+  .comm-item{padding:20px 22px;animation:viewIn .35s ease}
+  .comm-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:8px}
+  .method-tag{
+    font-size:11px;letter-spacing:1px;padding:3px 10px;border-radius:999px;
+    background:var(--gold-pale);color:var(--gold-deep);
+  }
+  .method-tag.phone{background:#EAF0E4;color:#5C7A4E}
+  .method-tag.meet{background:var(--ivory-2);color:var(--ink-soft)}
+  .comm-date{font-size:13px;color:var(--ink-faint)}
+  .comm-del{margin-left:auto}
+  .comm-content{font-size:14px;color:var(--ink);white-space:pre-wrap;margin-bottom:10px}
+  .comm-todos{border-top:1px dashed var(--line);padding-top:10px;display:flex;flex-direction:column;gap:6px}
+  .comm-todo{display:flex;align-items:center;gap:10px;font-size:13.5px}
+  .comm-todo .todo-check{width:17px;height:17px;border-radius:5px;margin-top:0}
+  .comm-todo .todo-check.on::after{left:5px;top:1px;width:4px;height:8px}
+  .comm-todo.done span{color:var(--ink-faint);text-decoration:line-through}
+
+  /* Flow editor */
+  .flow-toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+  .flow-list{counter-reset:step}
+  .flow-item{
+    display:flex;align-items:center;gap:14px;padding:16px 18px;margin-bottom:12px;
+    animation:viewIn .35s ease;
+  }
+  .flow-num{
+    width:34px;height:34px;border-radius:50%;flex-shrink:0;
+    border:1px solid var(--gold-light);background:linear-gradient(135deg,#fff,var(--gold-pale));
+    color:var(--gold-deep);font-family:var(--serif);font-size:14px;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .flow-main{flex:1;min-width:0}
+  .flow-name{font-family:var(--serif);font-size:16px;letter-spacing:1px}
+  .flow-info{font-size:12.5px;color:var(--ink-faint);margin-top:2px}
+  .flow-info em{font-style:normal;color:var(--ink-soft)}
+  .flow-ops{display:flex;gap:6px;flex-shrink:0}
+  .flow-total{margin-top:18px;padding:14px 20px;text-align:right;font-size:14px;color:var(--ink-soft)}
+  .flow-total b{font-family:var(--serif);color:var(--gold-deep);font-size:18px}
+  .flow-section-tag{
+    font-size:12px;letter-spacing:2px;color:var(--gold-deep);
+    margin:18px 0 10px;font-family:var(--serif);
+  }
+
+  /* Schedule (时间参考表 style) */
+  .sched-list{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden}
+  .sched-row{
+    display:flex;align-items:stretch;gap:0;padding:18px 22px;
+    border-bottom:1px solid var(--line);animation:viewIn .35s ease;
+  }
+  .sched-row:last-child{border-bottom:none}
+  .sched-left{display:flex;align-items:baseline;gap:14px;min-width:200px}
+  .sched-time{font-family:var(--serif);font-size:30px;letter-spacing:1px;color:var(--ink);line-height:1}
+  .sched-title{font-size:15px;font-weight:600;letter-spacing:1px}
+  .sched-mid{width:1px;background:var(--gold-light);margin:2px 20px;flex-shrink:0}
+  .sched-note{flex:1;color:var(--ink-soft);font-size:13.5px;padding-top:5px;min-width:0}
+  .sched-ops{display:flex;gap:6px;flex-shrink:0;padding-top:2px}
+
+  /* Export bar */
+  .export-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:18px}
+  .export-bar .lbl{font-size:12px;letter-spacing:3px;color:var(--ink-faint);margin-right:6px;text-transform:uppercase}
+
+  /* ---------- Modal ---------- */
+  .modal-mask{
+    position:fixed;inset:0;z-index:100;background:rgba(43,39,36,.45);
+    backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;
+    opacity:0;pointer-events:none;transition:opacity .28s ease;padding:20px;
+  }
+  .modal-mask.show{opacity:1;pointer-events:auto}
+  .modal{
+    background:#fff;border-radius:18px;max-width:460px;width:100%;
+    padding:30px 28px;box-shadow:0 24px 60px rgba(43,39,36,.25);
+    transform:translateY(20px) scale(.97);transition:transform .28s cubic-bezier(.22,.9,.32,1);
+    max-height:88vh;overflow-y:auto;
+  }
+  .modal-mask.show .modal{transform:none}
+  .modal h3{font-family:var(--serif);font-size:21px;letter-spacing:2px;margin-bottom:4px}
+  .modal .m-sub{font-size:13px;color:var(--ink-soft);margin-bottom:20px}
+  .modal .m-btns{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
+  .modal .field{margin-bottom:14px}
+
+  /* ---------- Toast ---------- */
+  #toast-wrap{position:fixed;bottom:30px;left:50%;transform:translateX(-50%);z-index:200;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none}
+  .toast{
+    background:rgba(43,39,36,.92);color:#F5EFE4;font-size:14px;letter-spacing:1px;
+    padding:11px 24px;border-radius:999px;box-shadow:0 8px 24px rgba(0,0,0,.2);
+    display:flex;align-items:center;gap:8px;
+    animation:toastIn .35s cubic-bezier(.22,.9,.32,1);transition:opacity .3s ease, transform .3s ease;
+  }
+  .toast .dot{width:7px;height:7px;border-radius:50%;background:var(--gold-light)}
+  .toast.hide{opacity:0;transform:translateY(10px)}
+  @keyframes toastIn{from{opacity:0;transform:translateY(14px) scale(.95)}to{opacity:1;transform:none}}
+
+  /* ---------- Responsive ---------- */
+  @media (max-width:760px){
+    .topbar-inner{height:auto;flex-wrap:wrap;padding:12px 16px;gap:10px}
+    .brand-text .t1{font-size:14px}
+    nav.tabs{margin-left:0;width:100%;overflow-x:auto}
+    .tab{white-space:nowrap;padding:7px 13px;font-size:13px}
+    main{padding:22px 14px 70px}
+    .grid-stats{grid-template-columns:1fr;gap:12px}
+    .hero{padding:32px 18px}
+    .hero .names{font-size:24px}
+    .cd-box{min-width:70px;padding:12px 8px 9px}
+    .cd-box .n{font-size:28px}
+    .form-grid{grid-template-columns:1fr}
+    .page-title{font-size:24px}
+    .flow-ops .icon-btn{width:28px;height:28px;font-size:12px}
+    .sched-row{flex-wrap:wrap}
+    .sched-mid{display:none}
+    .sched-left{min-width:0;width:100%}
+    .sched-note{width:100%;padding-top:6px}
+  }
+</style>
+</head>
 <body>
 <div class="app">
   <header class="topbar">
@@ -296,768 +645,3 @@ function delCouple(id){
   });
 }
 </script>
-<script>
-/* ================= 档案详情 ================= */
-function viewDetail(){
-  const c = getCouple(view.coupleId);
-  if(!c) return `<div class="view"><div class="page-title">档案不存在</div><div class="page-sub"><button class="btn btn-ghost btn-sm" onclick="go('couples')">返回列表</button></div></div>`;
-  const d = daysUntil(c.date);
-  const chip = d === null ? '' : d >= 0
-    ? `<span class="cd-badge" style="position:static">距婚礼 ${d} 天</span>`
-    : `<span class="cd-badge past" style="position:static">已举行</span>`;
-  const tabs = [['comm','沟通记录'],['flow','婚礼流程'],['timeline','时间线安排']];
-  let body = '';
-  if(view.tab === 'comm') body = tabComm(c);
-  else if(view.tab === 'flow') body = tabFlow(c);
-  else body = tabTimeline(c);
-  return `
-  <div class="view">
-    <div class="detail-head">
-      <button class="back-btn" onclick="go('couples')" title="返回">←</button>
-      <div>
-        <div class="page-title" style="margin-bottom:0">${esc(coupleLabel(c))}</div>
-        <div class="page-sub" style="margin-bottom:0;margin-top:2px">${esc(fmtDate(c.date))}${c.venue?' · '+esc(c.venue):''}${c.phone?' · '+esc(c.phone):''}</div>
-      </div>
-      ${chip}
-      <div style="margin-left:auto;display:flex;gap:8px">
-        <button class="btn btn-ghost btn-sm" onclick="editCoupleForm('${c.id}')">编辑档案</button>
-        <button class="btn btn-danger btn-sm" onclick="delCouple('${c.id}')">删除</button>
-      </div>
-    </div>
-    ${c.notes ? `<div class="card" style="padding:14px 20px;margin-bottom:6px;font-size:13.5px;color:var(--ink-soft);border-left:3px solid var(--gold-light)">备注：${esc(c.notes)}</div>` : ''}
-    <div class="subtabs">
-      ${tabs.map(([k,n]) => `<button class="subtab ${view.tab===k?'active':''}" onclick="goTab('${k}')">${n}</button>`).join('')}
-    </div>
-    ${body}
-  </div>`;
-}
-
-/* ---------- 沟通记录 ---------- */
-function tabComm(c){
-  const list = [...(c.comms||[])].sort((a,b) => (String(b.date)+b.createdAt) < (String(a.date)+a.createdAt) ? -1 : 1);
-  return `
-    <div class="card form-card">
-      <div class="form-grid">
-        <div><label class="f">沟通日期 *</label><input class="fi" type="date" id="c-date" value="${new Date().toISOString().slice(0,10)}"></div>
-        <div><label class="f">沟通方式 *</label>
-          <select class="fi" id="c-method">
-            <option value="微信">微信</option><option value="电话">电话</option><option value="面谈">面谈</option>
-          </select>
-        </div>
-        <div class="full"><label class="f">沟通内容 *</label><textarea class="fi" id="c-content" placeholder="本次沟通要点、新人想法、需要确认的事项…"></textarea></div>
-        <div class="full"><label class="f">待办事项（多条用逗号或换行分隔，可留空）</label><textarea class="fi" id="c-todos" placeholder="例如：确认伴郎伴娘名单, 收集成长照片, 敲定开场音乐"></textarea></div>
-      </div>
-      <div class="form-actions"><button class="btn btn-gold btn-sm" onclick="addComm('${c.id}')">添加记录</button></div>
-    </div>
-    <div class="comm-list">
-      ${list.length ? list.map(cm => {
-        const mcls = cm.method === '电话' ? 'phone' : cm.method === '面谈' ? 'meet' : '';
-        return `
-        <div class="card comm-item">
-          <div class="comm-top">
-            <span class="method-tag ${mcls}">${esc(cm.method)}</span>
-            <span class="comm-date">${esc(fmtDate(cm.date))}</span>
-            <button class="icon-btn danger comm-del" title="删除记录" onclick="delComm('${c.id}','${cm.id}')">✕</button>
-          </div>
-          <div class="comm-content">${esc(cm.content)}</div>
-          ${(cm.todos||[]).length ? `<div class="comm-todos">${cm.todos.map(t => `
-            <div class="comm-todo ${t.done?'done':''}">
-              <div class="todo-check ${t.done?'on':''}" onclick="toggleTodo('${c.id}','${cm.id}','${t.id}')"></div>
-              <span>${esc(t.text)}</span>
-            </div>`).join('')}</div>` : ''}
-        </div>`;
-      }).join('') : `<div class="card empty"><span class="glyph">言</span>还没有沟通记录，第一次约谈后就记在这里吧</div>`}
-    </div>`;
-}
-function addComm(cid){
-  const c = getCouple(cid);
-  const date = document.getElementById('c-date').value;
-  const method = document.getElementById('c-method').value;
-  const content = document.getElementById('c-content').value.trim();
-  if(!date || !content){ toast('请填写沟通日期与内容'); return; }
-  const raw = document.getElementById('c-todos').value.trim();
-  const todos = raw ? raw.split(/[,，\n]/).map(s => s.trim()).filter(Boolean).map(t => ({ id: uid(), text: t, done: false })) : [];
-  c.comms = c.comms || [];
-  c.comms.push({ id: uid(), date, method, content, todos, createdAt: Date.now() });
-  save(); render(); toast('沟通记录已保存');
-}
-function delComm(cid, cmid){
-  confirmBox('删除记录', '确定删除这条沟通记录吗？其中的待办事项也会一并删除。', '删除', () => {
-    const c = getCouple(cid);
-    c.comms = c.comms.filter(x => x.id !== cmid);
-    save(); render(); toast('记录已删除');
-  });
-}
-function toggleTodo(cid, cmid, tid){
-  const c = getCouple(cid);
-  const cm = (c.comms||[]).find(x => x.id === cmid);
-  if(!cm) return;
-  const t = (cm.todos||[]).find(x => x.id === tid);
-  if(!t) return;
-  t.done = !t.done;
-  save();
-  const item = document.getElementById('todo-' + tid);
-  if(item){
-    item.querySelector('.todo-check').classList.toggle('on', t.done);
-    item.classList.toggle('finished', t.done);
-    if(t.done) setTimeout(render, 450); else render();
-  } else render();
-  if(t.done) toast('待办已完成');
-}
-
-/* ---------- 婚礼流程（晓东高定模板） ---------- */
-const FLOW_TEMPLATES = [
-  { name:'主持人开场', duration:'', section:'', notes:'主持人致开场词，拉开婚礼序幕。' },
-  { name:'出场方式', duration:'', section:'', notes:'① 新郎带手捧花，从 T 台末端走至主平台；② 新娘在门外等候，开门后走至副舞台，等待新郎迎接；③ 新郎迎接新娘，直接送花，不直视对方。' },
-  { name:'新人共同入场', duration:'', section:'', notes:'两人携手并肩，走上婚礼主舞台。' },
-  { name:'面向来宾鞠躬感谢', duration:'', section:'', notes:'新人转身面向宾客，鞠躬致意。' },
-  { name:'婚礼誓言', duration:'', section:'', notes:'主持人问是否愿意，新人回答「我愿意」；誓词新人提前备好，主持人宣读，请把名字写好。' },
-  { name:'交换戒指', duration:'', section:'', notes:'新郎外甥女送戒指，主持人提示后：新人同时右手取对方婚戒，按提示为对方佩戴，戴在左手无名指。' },
-  { name:'亲吻礼成', duration:'', section:'', notes:'手牵手亲吻一下，此环节新人可自由临时发挥。' },
-  { name:'父母登场', duration:'', section:'', notes:'父母登台，颁发最佳父母奖；新郎父亲致辞，礼成父母退场。' },
-  { name:'伴郎伴娘入场', duration:'', section:'', notes:'手捧花送同窗同寝好友；新郎新娘抛柿子、花生、玩偶，传递喜气。' },
-  { name:'全体大合影', duration:'', notes:'所有来宾合影，定格幸福瞬间。' },
-  { name:'新人退场 · 婚礼礼成', duration:'', section:'', notes:'两位新人带着心愿与祝福前行。' },
-  { name:'后场互动', duration:'', section:'', notes:'主持人唱歌、游戏互动；前半场互动礼品，请新人提前备足。' },
-];
-const TIMELINE_TEMPLATES = [
-  { time:'07:58', title:'新郎发车', note:'8:20 左右到达新娘家接亲' },
-  { time:'09:28', title:'新娘出阁', note:'10:00 左右新人到达新郎家拜堂' },
-  { time:'10:30', title:'拜堂结束', note:'10:30 左右拜堂结束，新人赶往酒店' },
-  { time:'11:58', title:'主仪式', note:'11:00 左右新人到达酒店，新娘换装，新郎迎宾' },
-];
-const DEFAULT_SCHED_NOTE = '＊路程参考：新郎去新娘家按 20 分钟计算，在新娘家停留约 50 分钟至一小时，回程按 30 分钟计算；拜堂仪式总时长约 30 分钟。以上时间仅供参考，最终时间以新人自家安排决定为准。';
-
-function tabFlow(c){
-  const flow = c.flow || [];
-  const groups = flowGroups(flow);
-  let num = 0;
-  return `
-    <div class="export-bar">
-      <span class="lbl">导出流程单</span>
-      <button class="btn btn-dark btn-sm" onclick="doExport('flow','image')">导出图片</button>
-      <button class="btn btn-dark btn-sm" onclick="doExport('flow','pdf')">导出 PDF</button>
-      <button class="btn btn-dark btn-sm" onclick="doExport('flow','word')">导出 Word</button>
-    </div>
-    <div class="flow-toolbar">
-      <button class="btn btn-gold btn-sm" onclick="addFlowItem('${c.id}')">＋ 添加环节</button>
-      <button class="btn btn-ghost btn-sm" onclick="applyFlowTemplate('${c.id}')">套用晓东高定模板</button>
-      ${flow.length ? `<button class="btn btn-ghost btn-sm" onclick="clearFlow('${c.id}')">清空流程</button>` : ''}
-    </div>
-    <div class="flow-list">
-      ${flow.length ? groups.map(g => `
-        ${g.section ? `<div class="flow-section-tag">${esc(g.section)}</div>` : ''}
-        ${g.items.map(f => { num++; return `
-        <div class="card flow-item">
-          <div class="flow-num">${String(num).padStart(2,'0')}</div>
-          <div class="flow-main">
-            <div class="flow-name">${esc(f.name)}</div>
-            <div class="flow-info">${f.duration?`<em>${esc(f.duration)}</em> · `:''}${esc(f.notes||'—')}</div>
-          </div>
-          <div class="flow-ops">
-            <button class="icon-btn" title="上移" ${num===1?'disabled style="opacity:.35"':''} onclick="moveFlow('${c.id}','${f.id}',-1)">↑</button>
-            <button class="icon-btn" title="下移" ${num===flow.length?'disabled style="opacity:.35"':''} onclick="moveFlow('${c.id}','${f.id}',1)">↓</button>
-            <button class="icon-btn" title="编辑" onclick="editFlowItem('${c.id}','${f.id}')">✎</button>
-            <button class="icon-btn danger" title="删除" onclick="delFlowItem('${c.id}','${f.id}')">✕</button>
-          </div>
-        </div>`; }).join('')}`).join('')
-      : `<div class="card empty"><span class="glyph">序</span>流程还是空白，可以「添加环节」逐步编排，或一键套用晓东高定经典模板后再调整</div>`}
-    </div>
-    ${flow.length ? `<div class="card flow-total">仪式流程合计约 <b>${esc(totalDuration(flow))}</b></div>` : ''}`;
-}
-function flowGroups(flow){
-  const groups = [];
-  flow.forEach(f => {
-    const s = (f.section || '').trim();
-    const last = groups[groups.length-1];
-    if(last && last.section === s) last.items.push(f);
-    else groups.push({ section: s, items: [f] });
-  });
-  return groups;
-}
-function totalDuration(flow){
-  let mins = 0;
-  flow.forEach(f => {
-    const m = String(f.duration||'').match(/(\d+(?:\.\d+)?)/);
-    if(m) mins += parseFloat(m[1]);
-  });
-  if(!mins) return '—';
-  if(mins < 60) return `${mins} 分钟`;
-  const h = Math.floor(mins/60), r = mins % 60;
-  return r ? `${h} 小时 ${r} 分钟` : `${h} 小时`;
-}
-function flowItemForm(cid, fid){
-  const c = getCouple(cid);
-  const f = fid ? (c.flow||[]).find(x => x.id === fid) : null;
-  window.__flowCoupleId = cid; window.__flowId = fid || null;
-  openModal(`
-    <h3>${f ? '编辑环节' : '添加环节'}</h3>
-    <div class="m-sub">环节会追加到流程末尾，可再上下移动调整顺序</div>
-    <div class="field"><label class="f">环节名称 *</label><input class="fi" id="fl-name" value="${esc(f?f.name:'')}" placeholder="如：新娘入场"></div>
-    <div class="field"><label class="f">时长</label><input class="fi" id="fl-duration" value="${esc(f?f.duration:'')}" placeholder="如：10 分钟（可留空）"></div>
-    <div class="field"><label class="f">篇章</label><input class="fi" id="fl-section" value="${esc(f?f.section:'')}" placeholder="如：壹 以爱之名 · 典礼篇（可留空）"></div>
-    <div class="field"><label class="f">环节说明</label><textarea class="fi" id="fl-notes" placeholder="走位、台词、道具等提示…">${esc(f?f.notes:'')}</textarea></div>
-    <div class="m-btns">
-      <button class="btn btn-ghost btn-sm" onclick="closeModal()">取消</button>
-      <button class="btn btn-gold btn-sm" onclick="saveFlowItem()">保存</button>
-    </div>`);
-  setTimeout(() => document.getElementById('fl-name').focus(), 60);
-}
-function addFlowItem(cid){ flowItemForm(cid, null); }
-function editFlowItem(cid, fid){ flowItemForm(cid, fid); }
-function saveFlowItem(){
-  const name = document.getElementById('fl-name').value.trim();
-  if(!name){ toast('请填写环节名称'); return; }
-  const data = { name, duration: document.getElementById('fl-duration').value.trim(), section: document.getElementById('fl-section').value.trim(), notes: document.getElementById('fl-notes').value.trim() };
-  const c = getCouple(window.__flowCoupleId);
-  c.flow = c.flow || [];
-  if(window.__flowId){
-    Object.assign(c.flow.find(x => x.id === window.__flowId), data);
-    toast('环节已更新');
-  } else {
-    c.flow.push(Object.assign({ id: uid() }, data));
-    toast('环节已添加');
-  }
-  closeModal(); save(); render();
-}
-function delFlowItem(cid, fid){
-  confirmBox('删除环节', '确定删除这个流程环节吗？', '删除', () => {
-    const c = getCouple(cid);
-    c.flow = c.flow.filter(x => x.id !== fid);
-    save(); render(); toast('环节已删除');
-  });
-}
-function moveFlow(cid, fid, dir){
-  const c = getCouple(cid);
-  const idx = c.flow.findIndex(x => x.id === fid);
-  const j = idx + dir;
-  if(idx < 0 || j < 0 || j >= c.flow.length) return;
-  const t = c.flow[idx]; c.flow[idx] = c.flow[j]; c.flow[j] = t;
-  save(); render();
-}
-function applyFlowTemplate(cid){
-  const c = getCouple(cid);
-  const doApply = () => {
-    c.flow = FLOW_TEMPLATES.map(t => Object.assign({ id: uid() }, t));
-    save(); render(); toast('已套用晓东高定经典流程模板');
-  };
-  if((c.flow||[]).length){
-    confirmBox('套用模板', '当前已有自定义流程，套用模板将覆盖全部环节。确定继续吗？', '覆盖并套用', doApply);
-  } else doApply();
-}
-function clearFlow(cid){
-  confirmBox('清空流程', '确定清空全部流程环节吗？此操作无法撤销。', '清空', () => {
-    getCouple(cid).flow = [];
-    save(); render(); toast('流程已清空');
-  });
-}
-
-/* ---------- 时间线安排（时间参考表样式） ---------- */
-function tabTimeline(c){
-  const d = daysUntil(c.date);
-  const list = [...(c.timeline||[])].sort((a,b) => String(a.time) < String(b.time) ? -1 : 1);
-  const upcoming = d !== null && d >= 0;
-  return `
-    ${upcoming ? `<div class="card hero" style="padding:26px;margin-bottom:24px">
-      <div class="over">Wedding Day · Countdown</div>
-      <div class="countdown" id="cd-live" data-date="${esc(c.date)}"></div>
-    </div>` : ''}
-    <div class="export-bar">
-      <span class="lbl">导出时间参考表</span>
-      <button class="btn btn-dark btn-sm" onclick="doExport('time','image')">导出图片</button>
-      <button class="btn btn-dark btn-sm" onclick="doExport('time','pdf')">导出 PDF</button>
-      <button class="btn btn-dark btn-sm" onclick="doExport('time','word')">导出 Word</button>
-    </div>
-    <div class="card form-card">
-      <div class="form-grid">
-        <div><label class="f">时间 *</label><input class="fi" type="time" id="t-time"></div>
-        <div><label class="f">事项 *</label><input class="fi" id="t-title" placeholder="如：新郎发车 / 新娘出阁 / 主仪式"></div>
-        <div class="full"><label class="f">备注（竖线右侧说明）</label><input class="fi" id="t-note" placeholder="如：8:20 左右到达新娘家接亲"></div>
-      </div>
-      <div class="form-actions">
-        <button class="btn btn-ghost btn-sm" onclick="applyTimeTemplate('${c.id}')">套用参考时间</button>
-        <button class="btn btn-gold btn-sm" onclick="addTimeline('${c.id}')">添加节点</button>
-      </div>
-    </div>
-    ${list.length ? `<div class="sched-list">
-      ${list.map(t => `
-        <div class="sched-row">
-          <div class="sched-left">
-            <div class="sched-time">${esc(t.time||'')}</div>
-            <div class="sched-title">${esc(t.title)}</div>
-          </div>
-          <div class="sched-mid"></div>
-          <div class="sched-note">${esc(t.note||'')}</div>
-          <div class="sched-ops">
-            <button class="icon-btn" title="编辑" onclick="editTimeline('${c.id}','${t.id}')">✎</button>
-            <button class="icon-btn danger" title="删除" onclick="delTimeline('${c.id}','${t.id}')">✕</button>
-          </div>
-        </div>`).join('')}
-    </div>` : `<div class="card empty"><span class="glyph">时</span>还没有时间节点，把发车、接亲、拜堂、仪式等关键节点记下来，或直接套用参考时间</div>`}`;
-}
-function addTimeline(cid){
-  const time = document.getElementById('t-time').value;
-  const title = document.getElementById('t-title').value.trim();
-  const note = document.getElementById('t-note').value.trim();
-  if(!time || !title){ toast('请填写时间与事项'); return; }
-  const c = getCouple(cid);
-  c.timeline = c.timeline || [];
-  c.timeline.push({ id: uid(), time, title, note });
-  save(); render(); toast('时间节点已添加');
-}
-function applyTimeTemplate(cid){
-  const c = getCouple(cid);
-  const doApply = () => {
-    c.timeline = TIMELINE_TEMPLATES.map(t => Object.assign({ id: uid() }, t));
-    save(); render(); toast('已套用参考时间');
-  };
-  if((c.timeline||[]).length){
-    confirmBox('套用参考时间', '当前已有时间节点，套用模板将覆盖全部节点。确定继续吗？', '覆盖并套用', doApply);
-  } else doApply();
-}
-function editTimeline(cid, tid){
-  const c = getCouple(cid);
-  const t = (c.timeline||[]).find(x => x.id === tid);
-  if(!t) return;
-  window.__tlCoupleId = cid; window.__tlId = tid;
-  openModal(`
-    <h3>编辑时间节点</h3>
-    <div class="m-sub">调整后按时间自动重新排序</div>
-    <div class="field"><label class="f">时间 *</label><input class="fi" type="time" id="et-time" value="${esc(t.time||'')}"></div>
-    <div class="field"><label class="f">事项 *</label><input class="fi" id="et-title" value="${esc(t.title)}"></div>
-    <div class="field"><label class="f">备注</label><input class="fi" id="et-note" value="${esc(t.note||'')}"></div>
-    <div class="m-btns">
-      <button class="btn btn-ghost btn-sm" onclick="closeModal()">取消</button>
-      <button class="btn btn-gold btn-sm" onclick="saveTimelineEdit()">保存</button>
-    </div>`);
-}
-function saveTimelineEdit(){
-  const time = document.getElementById('et-time').value;
-  const title = document.getElementById('et-title').value.trim();
-  if(!time || !title){ toast('请填写时间与事项'); return; }
-  const t = getCouple(window.__tlCoupleId).timeline.find(x => x.id === window.__tlId);
-  t.time = time; t.title = title; t.note = document.getElementById('et-note').value.trim();
-  closeModal(); save(); render(); toast('时间节点已更新');
-}
-function delTimeline(cid, tid){
-  confirmBox('删除节点', '确定删除这个时间节点吗？', '删除', () => {
-    const c = getCouple(cid);
-    c.timeline = c.timeline.filter(x => x.id !== tid);
-    save(); render(); toast('节点已删除');
-  });
-}
-</script>
-<script>
-/* ================= 导出：画纸引擎（A4 @200dpi，黑白高级排版） ================= */
-const SHEET_W = 1654, SHEET_H = 2339;
-const SHEET_SERIF = '"Songti SC","Noto Serif SC","STSong","SimSun",serif';
-const SHEET_INK = '#1A1A1A', SHEET_SOFT = '#555', SHEET_FAINT = '#9A9084', SHEET_HAIR = '#B5ADA0';
-const CN_DIGITS = '〇一二三四五六七八九';
-const CN_UPPER = ['壹','贰','叁','肆','伍','陆','柒','捌','玖','拾','拾壹','拾贰','拾叁','拾肆','拾伍'];
-
-function setSp(ctx, px){ try{ ctx.letterSpacing = px + 'px'; }catch(e){} }
-function cnNum(n){
-  n = Math.floor(n);
-  if(n < 10) return CN_DIGITS[n];
-  if(n === 10) return '十';
-  if(n < 20) return '十' + (n%10 ? CN_DIGITS[n%10] : '');
-  return CN_DIGITS[Math.floor(n/10)] + '十' + (n%10 ? CN_DIGITS[n%10] : '');
-}
-function cnDate(s){
-  const m = String(s||'').match(/(\d{4})-(\d{1,2})-(\d{1,2})/);
-  if(!m) return s || '';
-  return m[1].split('').map(d => CN_DIGITS[+d]).join('') + '年' + cnNum(+m[2]) + '月' + cnNum(+m[3]) + '日';
-}
-function wrapLines(ctx, text, maxW){
-  const lines = [];
-  String(text == null ? '' : text).split('\n').forEach(par => {
-    let line = '';
-    for(const ch of par){
-      if(line && ctx.measureText(line + ch).width > maxW){ lines.push(line); line = ch; }
-      else line += ch;
-    }
-    lines.push(line);
-  });
-  return lines;
-}
-const measurer = document.createElement('canvas').getContext('2d');
-function newSheetCtx(){
-  const cv = document.createElement('canvas');
-  cv.width = SHEET_W; cv.height = SHEET_H;
-  const ctx = cv.getContext('2d');
-  ctx.fillStyle = '#FFFFFF'; ctx.fillRect(0,0,SHEET_W,SHEET_H);
-  ctx.textBaseline = 'alphabetic';
-  return { cv, ctx };
-}
-function drawLogo(ctx, cx, cy){
-  ctx.save();
-  ctx.strokeStyle = SHEET_INK; ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.arc(cx, cy, 62, 0, Math.PI*2); ctx.stroke();
-  ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.arc(cx, cy, 50, 0, Math.PI*2); ctx.stroke();
-  ctx.fillStyle = SHEET_INK; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-  setSp(ctx, 2); ctx.font = '30px ' + SHEET_SERIF;
-  ctx.fillText('晓东', cx, cy - 20);
-  ctx.fillText('高定', cx, cy + 20);
-  ctx.restore();
-}
-function drawSheetHeader(ctx, o){
-  ctx.save();
-  ctx.strokeStyle = SHEET_INK;
-  ctx.lineWidth = 2.5; ctx.strokeRect(48, 48, SHEET_W-96, SHEET_H-96);
-  ctx.lineWidth = 1;   ctx.strokeRect(64, 64, SHEET_W-128, SHEET_H-128);
-  drawLogo(ctx, SHEET_W/2, 206);
-  ctx.textAlign = 'center'; ctx.fillStyle = SHEET_INK;
-  setSp(ctx, 14); ctx.font = '44px ' + SHEET_SERIF;
-  ctx.fillText('主持人晓东 · 高定婚礼', SHEET_W/2, 350);
-  setSp(ctx, 8); ctx.font = '26px ' + SHEET_SERIF; ctx.fillStyle = SHEET_SOFT;
-  ctx.fillText('XIAODONG HAUTE WEDDING', SHEET_W/2, 394);
-  setSp(ctx, 16); ctx.font = '32px ' + SHEET_SERIF; ctx.fillStyle = '#333';
-  ctx.fillText(o.en, SHEET_W/2, 476);
-  setSp(ctx, 26); ctx.font = '96px ' + SHEET_SERIF; ctx.fillStyle = SHEET_INK;
-  ctx.fillText(o.title, SHEET_W/2, 588);
-  // date line with side rules
-  const dt = (o.datePrefix ? o.datePrefix + ' ' : '') + cnDate(o.date);
-  setSp(ctx, 6); ctx.font = '40px ' + SHEET_SERIF; ctx.fillStyle = SHEET_INK;
-  const tw = ctx.measureText(dt).width;
-  ctx.fillText(dt, SHEET_W/2, 668);
-  ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(SHEET_W/2 - tw/2 - 200, 658); ctx.lineTo(SHEET_W/2 - tw/2 - 50, 658); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(SHEET_W/2 + tw/2 + 50, 658); ctx.lineTo(SHEET_W/2 + tw/2 + 200, 658); ctx.stroke();
-  if(o.venue){
-    setSp(ctx, 4); ctx.font = '32px ' + SHEET_SERIF;
-    ctx.fillText(o.venue + ' · 敬备喜筵', SHEET_W/2, 726);
-  }
-  // line - diamond - line divider
-  const dy = o.venue ? 778 : 726;
-  ctx.beginPath(); ctx.moveTo(SHEET_W/2 - 250, dy); ctx.lineTo(SHEET_W/2 - 26, dy); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(SHEET_W/2 + 26, dy); ctx.lineTo(SHEET_W/2 + 250, dy); ctx.stroke();
-  ctx.save(); ctx.translate(SHEET_W/2, dy); ctx.rotate(Math.PI/4);
-  ctx.fillStyle = SHEET_INK; ctx.fillRect(-7, -7, 14, 14); ctx.restore();
-  ctx.restore();
-  return dy + 66;
-}
-function drawSheetFooter(ctx, text){
-  ctx.save();
-  ctx.textAlign = 'center'; ctx.fillStyle = SHEET_INK;
-  setSp(ctx, 10); ctx.font = '30px ' + SHEET_SERIF;
-  ctx.fillText(text, SHEET_W/2, SHEET_H - 128);
-  ctx.restore();
-}
-const CONTENT_X = 110, CONTENT_W = SHEET_W - 220, CONTENT_BOTTOM = SHEET_H - 330;
-
-/* ---------- 流程单画布 ---------- */
-function flowBlocksOf(c){
-  const blocks = [];
-  flowGroups(c.flow || []).forEach(g => {
-    if(g.section) blocks.push({ type:'section', text:g.section });
-    g.items.forEach(f => blocks.push({ type:'item', f }));
-  });
-  return blocks;
-}
-function measureFlowBlock(b, colW){
-  if(b.type === 'section'){
-    return Object.assign(b, { _h: 84 });
-  }
-  measurer.font = '36px ' + SHEET_SERIF;
-  const nameLines = wrapLines(measurer, b.f.name, colW - 64).slice(0, 2);
-  measurer.font = '26px ' + SHEET_SERIF;
-  const descLines = b.f.notes ? wrapLines(measurer, b.f.notes, colW - 64).slice(0, 8) : [];
-  const h = nameLines.length * 46 + (descLines.length ? descLines.length * 40 + 14 : 0) + 32;
-  return Object.assign(b, { _m:{ nameLines, descLines }, _h:h });
-}
-function paginateFlow(blocks, contentTop){
-  const colGap = 80, colW = (CONTENT_W - colGap) / 2;
-  blocks.forEach(b => measureFlowBlock(b, colW));
-  const pages = [];
-  let page = newFlowPage(), col = 0, y = contentTop;
-  function newFlowPage(){ return { L:[], R:[], usedY: contentTop }; }
-  function advance(){
-    if(col === 0){ col = 1; y = contentTop; }
-    else { pages.push(page); page = newFlowPage(); col = 0; y = contentTop; }
-  }
-  blocks.forEach(b => {
-    if(b.type === 'section' && y > contentTop + 10) advance();
-    if(y + b._h > CONTENT_BOTTOM) advance();
-    (col === 0 ? page.L : page.R).push({ b, y });
-    y += b._h;
-    page.usedY = Math.max(page.usedY, y);
-  });
-  pages.push(page);
-  return { pages, colW };
-}
-function drawFlowBlock(ctx, entry, x, colW, num){
-  const b = entry.b, y = entry.y;
-  ctx.save();
-  ctx.textAlign = 'left';
-  if(b.type === 'section'){
-    ctx.textAlign = 'center'; ctx.fillStyle = SHEET_INK;
-    setSp(ctx, 8); ctx.font = '42px ' + SHEET_SERIF;
-    ctx.fillText(b.text, SHEET_W/2, y + 46);
-    ctx.restore();
-    return num;
-  }
-  ctx.fillStyle = SHEET_INK; ctx.font = '34px ' + SHEET_SERIF;
-  ctx.fillText(String(num).padStart(2,'0'), x, y + 32);
-  ctx.font = '36px ' + SHEET_SERIF;
-  b._m.nameLines.forEach((l, i) => ctx.fillText(l, x + 66, y + 34 + i * 46));
-  const dy = y + 34 + b._m.nameLines.length * 46 + 4;
-  if(b._m.descLines.length){
-    ctx.fillStyle = '#444'; ctx.font = '25px ' + SHEET_SERIF;
-    b._m.descLines.forEach((l, i) => ctx.fillText(l, x + 66, dy + 26 + i * 40));
-  }
-  ctx.restore();
-  return num + 1;
-}
-function buildFlowCanvases(c){
-  const contentTop = drawSheetHeader(newSheetCtx().ctx, { en:'Wedding Ceremony', title:'婚礼详细流程', date:c.date, datePrefix:'婚期', venue:c.venue });
-  const blocks = flowBlocksOf(c);
-  const tips = (c.tips || '').split('\n').map(s => s.trim()).filter(Boolean);
-  // measure tips height
-  let tipsH = 0, tipsLines = [];
-  if(tips.length){
-    measurer.font = '27px ' + SHEET_SERIF;
-    tips.forEach(t => tipsLines.push(wrapLines(measurer, t, CONTENT_W - 150).slice(0, 4)));
-    tipsH = 118 + tipsLines.reduce((s, l) => s + l.length * 42 + 16, 0);
-  }
-  const { pages, colW } = paginateFlow(blocks, contentTop);
-  if(tips.length){
-    while(pages[pages.length-1].usedY + tipsH + 70 > CONTENT_BOTTOM) pages.push({ L:[], R:[], usedY: contentTop });
-  }
-  const colX = [CONTENT_X, CONTENT_X + colW + 80];
-  return pages.map((p, pi) => {
-    const { cv, ctx } = newSheetCtx();
-    drawSheetHeader(ctx, { en:'Wedding Ceremony', title:'婚礼详细流程', date:c.date, datePrefix:'婚期', venue:c.venue });
-    let num = 1 + p.L.filter(e => e.b.type === 'item').length * 0; // numbering continues across pages
-    // first pass: count items on previous pages
-    num = pages.slice(0, pi).reduce((s, pg) => s + pg.L.concat(pg.R).filter(e => e.b.type === 'item').length, 0) + 1;
-    p.L.forEach(e => { num = drawFlowBlock(ctx, e, colX[0], colW, num); });
-    p.R.forEach(e => { num = drawFlowBlock(ctx, e, colX[1], colW, num); });
-    if(pi === pages.length - 1 && tips.length){
-      let ty = Math.max(p.usedY + 56, CONTENT_BOTTOM - tipsH + 60);
-      ctx.save();
-      ctx.strokeStyle = SHEET_HAIR; ctx.lineWidth = 1.5;
-      ctx.beginPath(); ctx.moveTo(CONTENT_X, ty - 26); ctx.lineTo(CONTENT_X + CONTENT_W, ty - 26); ctx.stroke();
-      ctx.textAlign = 'center'; ctx.fillStyle = SHEET_INK;
-      setSp(ctx, 10); ctx.font = '38px ' + SHEET_SERIF;
-      ctx.fillText('温 馨 贴 士', SHEET_W/2, ty + 18);
-      ctx.textAlign = 'left'; ctx.font = '27px ' + SHEET_SERIF; ctx.fillStyle = '#333';
-      let ly = ty + 66;
-      tips.forEach((t, i) => {
-        const lines = tipsLines[i];
-        ctx.fillStyle = SHEET_INK; ctx.font = '28px ' + SHEET_SERIF;
-        ctx.fillText((CN_UPPER[i] || (i+1)) + '、', CONTENT_X + 14, ly + 4);
-        ctx.fillStyle = '#333'; ctx.font = '27px ' + SHEET_SERIF;
-        lines.forEach((l, j) => ctx.fillText(l, CONTENT_X + 88, ly + j * 42));
-        ly += lines.length * 42 + 16;
-      });
-      ctx.restore();
-    }
-    drawSheetFooter(ctx, '祝福新郎新娘 · 新婚快乐 · 百年好合 · 早生贵子');
-    return cv;
-  });
-}
-
-/* ---------- 时间参考表画布 ---------- */
-function measureTimeRow(t){
-  measurer.font = '36px ' + SHEET_SERIF;
-  const titleLines = wrapLines(measurer, t.title, 440).slice(0, 2);
-  measurer.font = '27px ' + SHEET_SERIF;
-  const noteLines = wrapLines(measurer, t.note || '', 650).slice(0, 5);
-  const h = Math.max(100, titleLines.length * 46 + 26, noteLines.length * 42 + 26) + 26;
-  return Object.assign(t, { _m:{ titleLines, noteLines }, _h:h });
-}
-function drawTimeRow(ctx, t, y){
-  ctx.save();
-  ctx.textAlign = 'left';
-  ctx.fillStyle = SHEET_INK; ctx.font = '68px ' + SHEET_SERIF;
-  ctx.fillText(t.time || '', CONTENT_X, y + 74);
-  ctx.font = '36px ' + SHEET_SERIF;
-  t._m.titleLines.forEach((l, i) => ctx.fillText(l, 330, y + 60 + i * 46));
-  ctx.strokeStyle = SHEET_FAINT; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(830, y + 14); ctx.lineTo(830, y + t._h - 22); ctx.stroke();
-  ctx.fillStyle = '#333'; ctx.font = '27px ' + SHEET_SERIF;
-  t._m.noteLines.forEach((l, i) => ctx.fillText(l, 895, y + 54 + i * 42));
-  ctx.strokeStyle = SHEET_HAIR; ctx.lineWidth = 1.5;
-  ctx.beginPath(); ctx.moveTo(CONTENT_X, y + t._h - 6); ctx.lineTo(CONTENT_X + CONTENT_W, y + t._h - 6); ctx.stroke();
-  ctx.restore();
-}
-function buildTimeCanvases(c){
-  const rows = [...(c.timeline || [])].sort((a,b) => String(a.time) < String(b.time) ? -1 : 1);
-  rows.forEach(r => measureTimeRow(r));
-  const footnote = c.scheduleNote || DEFAULT_SCHED_NOTE;
-  measurer.font = '25px ' + SHEET_SERIF;
-  const footLines = wrapLines(measurer, footnote, CONTENT_W).slice(0, 6);
-  const pages = [];
-  let y = 0;
-  const CT = 830, CB = CONTENT_BOTTOM - 240;
-  let pageRows = [];
-  rows.forEach(r => {
-    if(y + r._h > CB){ pages.push(pageRows); pageRows = []; y = 0; }
-    pageRows.push({ r, y });
-    y += r._h;
-  });
-  pages.push(pageRows);
-  // footnote overflow guard
-  const footY = SHEET_H - 560;
-  if(pages.length && pages[pages.length-1].length && pages[pages.length-1][pages[pages.length-1].length-1].y + pages[pages.length-1][pages[pages.length-1].length-1].r._h + 70 > footY){
-    pages.push([]);
-  }
-  return pages.map(prs => {
-    const { cv, ctx } = newSheetCtx();
-    drawSheetHeader(ctx, { en:'Wedding Day Schedule', title:'时间参考表', date:c.date });
-    prs.forEach(e => drawTimeRow(ctx, e.r, e.y + CT));
-    const lastY = prs.length ? prs[prs.length-1].y + prs[prs.length-1].r._h : 0;
-    let fy = Math.max(footY, CT + lastY + 70);
-    if(fy + footLines.length * 38 > SHEET_H - 220) fy = footY;
-    ctx.save();
-    ctx.strokeStyle = SHEET_HAIR; ctx.lineWidth = 1.5;
-    ctx.beginPath(); ctx.moveTo(CONTENT_X, fy - 16); ctx.lineTo(CONTENT_X + CONTENT_W, fy - 16); ctx.stroke();
-    ctx.fillStyle = SHEET_SOFT; ctx.font = '25px ' + SHEET_SERIF; ctx.textAlign = 'left';
-    footLines.forEach((l, i) => ctx.fillText(l, CONTENT_X, fy + 22 + i * 38));
-    ctx.restore();
-    drawSheetFooter(ctx, '良辰吉日 · 万事顺遂');
-    return cv;
-  });
-}
-
-/* ---------- 组装 PDF（图片全页嵌入，零依赖） ---------- */
-function dataUrlToBytes(u){
-  const bin = atob(u.slice(u.indexOf(',') + 1));
-  const arr = new Uint8Array(bin.length);
-  for(let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
-  return arr;
-}
-function assemblePdf(jpegs){
-  const enc = new TextEncoder();
-  const chunks = [], offsets = [0];
-  let pos = 0;
-  const push = u8 => { chunks.push(u8); pos += u8.length; };
-  const pushStr = s => push(enc.encode(s));
-  pushStr('%PDF-1.4\n');
-  push(new Uint8Array([0x25, 0xE2, 0xE3, 0xCF, 0xD3, 0x0A]));
-  const W = 595.28, H = 841.89, n = jpegs.length, total = 2 + n * 3;
-  offsets[1] = pos; pushStr('1 0 obj\n<< /Type /Catalog /Pages 2 0 R >>\nendobj\n');
-  offsets[2] = pos;
-  pushStr('2 0 obj\n<< /Type /Pages /Kids [' + jpegs.map((_, i) => `${3 + i*3} 0 R`).join(' ') + `] /Count ${n} >>\nendobj\n`);
-  jpegs.forEach((jpg, i) => {
-    const p = 3 + i*3, im = 4 + i*3, ct = 5 + i*3;
-    offsets[p] = pos;
-    pushStr(`${p} 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 ${W} ${H}] /Resources << /XObject << /Im${i} ${im} 0 R >> /ProcSet [/PDF /ImageC] >> /Contents ${ct} 0 R >>\nendobj\n`);
-    offsets[im] = pos;
-    pushStr(`${im} 0 obj\n<< /Type /XObject /Subtype /Image /Width ${jpg.width} /Height ${jpg.height} /ColorSpace /DeviceRGB /BitsPerComponent 8 /Filter /DCTDecode /Length ${jpg.data.length} >>\nstream\n`);
-    push(jpg.data);
-    pushStr('\nendstream\nendobj\n');
-    const stream = `q ${W} 0 0 ${H} 0 0 cm /Im${i} Do Q`;
-    offsets[ct] = pos;
-    pushStr(`${ct} 0 obj\n<< /Length ${stream.length} >>\nstream\n${stream}\nendstream\nendobj\n`);
-  });
-  const xrefPos = pos;
-  let x = `xref\n0 ${total + 1}\n0000000000 65535 f \n`;
-  for(let i = 1; i <= total; i++) x += String(offsets[i]).padStart(10, '0') + ' 00000 n \n';
-  pushStr(x);
-  pushStr(`trailer\n<< /Size ${total + 1} /Root 1 0 R >>\nstartxref\n${xrefPos}\n%%EOF`);
-  const len = chunks.reduce((s, c) => s + c.length, 0);
-  const out = new Uint8Array(len);
-  let o = 0;
-  chunks.forEach(c => { out.set(c, o); o += c.length; });
-  return out;
-}
-
-/* ---------- Word 文档（.doc） ---------- */
-function wordShell(title, body){
-  return `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><title>${esc(title)}</title><style>
-body{font-family:SimSun,'宋体',serif;color:#1A1A1A;padding:36px;line-height:1.8}
-.c{text-align:center}.small{font-size:12px;letter-spacing:4px;color:#555}
-h1{text-align:center;font-size:28px;letter-spacing:16px;font-weight:normal;margin:22px 0 8px}
-.rule{border:none;border-top:1px solid #999;margin:12px 0}
-table{border-collapse:collapse;width:100%;margin-top:12px}
-td{border:1px solid #999;padding:8px 12px;font-size:13px;vertical-align:top}
-.sec{background:#F5F1E8;text-align:center;letter-spacing:6px;font-size:15px;font-weight:bold}
-.foot{text-align:center;letter-spacing:8px;margin-top:28px;font-size:14px}
-.tips{margin-top:22px;font-size:13px}.tips p{margin:6px 0}
-</style></head><body>${body}</body></html>`;
-}
-function buildFlowWord(c){
-  let num = 0;
-  const rows = flowGroups(c.flow || []).map(g =>
-    (g.section ? `<tr><td colspan="3" class="sec">${esc(g.section)}</td></tr>` : '') +
-    g.items.map(f => {
-      num++;
-      return `<tr><td style="width:44px">${String(num).padStart(2,'0')}</td><td style="width:170px">${esc(f.name)}${f.duration ? `<br><span style="color:#777;font-size:11px">${esc(f.duration)}</span>` : ''}</td><td>${esc(f.notes || '')}</td></tr>`;
-    }).join('')
-  ).join('');
-  const tips = (c.tips || '').split('\n').map(s => s.trim()).filter(Boolean)
-    .map((t, i) => `<p>${CN_UPPER[i] || (i + 1)}、${esc(t)}</p>`).join('');
-  return wordShell('婚礼详细流程', `
-<p class="c" style="letter-spacing:8px;font-size:18px">主持人晓东 · 高定婚礼</p>
-<p class="c small">XIAODONG HAUTE WEDDING</p>
-<p class="c small">Wedding Ceremony</p>
-<h1>婚礼详细流程</h1>
-<p class="c" style="letter-spacing:4px">—— 婚期 ${cnDate(c.date)} ——</p>
-<p class="c" style="letter-spacing:4px">${esc(c.venue || '典礼酒店')} · 敬备喜筵</p>
-<hr class="rule">
-<table>${rows || '<tr><td>（流程为空）</td></tr>'}</table>
-${tips ? `<div class="tips"><p class="c" style="letter-spacing:10px;font-size:15px">温 馨 贴 士</p>${tips}</div>` : ''}
-<p class="foot">祝福新郎新娘 · 新婚快乐 · 百年好合 · 早生贵子</p>`);
-}
-function buildTimeWord(c){
-  const rows = [...(c.timeline || [])].sort((a,b) => String(a.time) < String(b.time) ? -1 : 1)
-    .map(t => `<tr><td style="width:110px;font-size:18px">${esc(t.time || '')}</td><td style="width:170px">${esc(t.title)}</td><td>${esc(t.note || '')}</td></tr>`).join('');
-  return wordShell('时间参考表', `
-<p class="c" style="letter-spacing:8px;font-size:18px">主持人晓东 · 高定婚礼</p>
-<p class="c small">XIAODONG HAUTE WEDDING</p>
-<p class="c small">Wedding Day Schedule</p>
-<h1>时间参考表</h1>
-<p class="c" style="letter-spacing:4px">—— ${cnDate(c.date)} ——</p>
-<hr class="rule">
-<table>${rows || '<tr><td>（时间线为空）</td></tr>'}</table>
-<p style="font-size:12px;color:#555">${esc(c.scheduleNote || DEFAULT_SCHED_NOTE)}</p>
-<p class="foot">良辰吉日 · 万事顺遂</p>`);
-}
-
-/* ---------- 下载与导出入口 ---------- */
-function downloadBlob(blob, filename){
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = filename;
-  document.body.appendChild(a);
-  a.click();
-  setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
-}
-function doExport(kind, fmt){
-  const c = getCouple(view.coupleId);
-  if(!c) return;
-  if(kind === 'flow' && !(c.flow || []).length){ toast('请先添加或套用婚礼流程'); return; }
-  if(kind === 'time' && !(c.timeline || []).length){ toast('请先添加或套用时间节点'); return; }
-  const fname = `晓东高定-${kind === 'flow' ? '婚礼详细流程' : '时间参考表'}-${c.groom || '新郎'}${c.bride || '新娘'}`;
-  if(fmt === 'word'){
-    const html = kind === 'flow' ? buildFlowWord(c) : buildTimeWord(c);
-    downloadBlob(new Blob(['﻿' + html], { type:'application/msword' }), fname + '.doc');
-    toast('Word 文档已导出');
-    return;
-  }
-  const canvases = kind === 'flow' ? buildFlowCanvases(c) : buildTimeCanvases(c);
-  if(fmt === 'image'){
-    const gap = 28;
-    const H = canvases.reduce((s, cv) => s + cv.height, 0) + gap * (canvases.length - 1);
-    const out = document.createElement('canvas');
-    out.width = SHEET_W; out.height = H;
-    const ctx = out.getContext('2d');
-    ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, SHEET_W, H);
-    let y = 0;
-    canvases.forEach(cv => { ctx.drawImage(cv, 0, y); y += cv.height + gap; });
-    out.toBlob(b => { downloadBlob(b, fname + '.png'); toast('图片已导出'); }, 'image/png');
-  } else {
-    const jpgs = canvases.map(cv => ({ data: dataUrlToBytes(cv.toDataURL('image/jpeg', 0.92)), width: cv.width, height: cv.height }));
-    downloadBlob(new Blob([assemblePdf(jpgs)], { type:'application/pdf' }), fname + '.pdf');
-    toast('PDF 已导出');
-  }
-}
-
-/* ================= 启动 ================= */
-document.addEventListener('keydown', e => { if(e.key === 'Escape') closeModal(); });
-render();
-</script>
-</body>
-</html>
